@@ -2,17 +2,17 @@
 
 [English](README.md) | [日本語](README.ja.md)
 
-OPM Tone Editor 'N' is an FM tone editing system
+OPM Tone Editor 'N' is an FM tone editing system\
 for YM2151 (OPM) that runs on Human68k on the X68000.
 
-It is designed to make FM tone editing intuitive,
+It is designed to make FM tone editing intuitive,\
 responsive, and efficient.
 
 ---
 
 ## Overview
 
-With OPM Tone Editor 'N',
+With OPM Tone Editor 'N',\
 you can edit tones while listening to the sound in real time.
 
 ![OPM Tone Editor 'N' Screenshot](docs/images/ui_01_toneeditor_main_screenshot.png)
