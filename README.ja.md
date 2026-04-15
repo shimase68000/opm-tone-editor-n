@@ -55,7 +55,7 @@ OPM Tone Editor 'N' では、
 
 ## System Structure
 
-Tone Editor は編集機能に特化し、
+OPM Tone Editor 'N' は編集機能に特化し、
 音の再生は独立したモジュール（**scalekey**）が担当します。
 
 この分離により：
@@ -99,7 +99,7 @@ v1.20 のリリース後に公開予定です。
 
 ## Summary
 
-Tone Editor は、
+OPM Tone Editor 'N' は、
 
 - 音を聴きながら編集できるリアルタイム性  
 - 既存音色を活用した効率的なワークフロー  
