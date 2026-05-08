@@ -289,3 +289,38 @@ That is the version that waited thirty years.
 | 2025-07 | Version 1.00 released. |
 | 2025-08 | Version 1.03 released (critical TL calculation fix). |
 | 2025-09 | Version 1.10 released (scalekey separation). |
+| 2025– | Version 1.20 in development. Planned close of X68000 phase. |
+| After 1.20 | Continuation on Windows platform. |
+
+---
+
+## On the X68000 Phase
+
+When development resumed in 2023,\
+the goal was not simply to finish what had been left incomplete.
+
+The X68000 version was conceived from the start as a test case —\
+a working implementation on constrained hardware\
+that would validate the design before it moved to a wider platform.
+
+In 1996, the aim had been to build a complete X68000 ecosystem.\
+That aim changed when development restarted.
+
+The X68000 imposes real constraints:\
+limited memory, a single-tasking OS, direct hardware access,\
+assembly language where performance matters.\
+Building a complete FM tone workstation under these conditions\
+is not a compromise. It is a proof.
+
+If the ideas hold up on the X68000,\
+they will hold up anywhere.
+
+Version 1.20 is intended as the close of this phase.\
+Not because the X68000 no longer matters,\
+but because what needed to be validated on this platform\
+will have been validated.
+
+The ecosystem — OPM Tone Editor, scalekey, OED, OTG —\
+will continue on Windows,\
+carrying the same philosophy\
+that was proven on the platform where it began.
