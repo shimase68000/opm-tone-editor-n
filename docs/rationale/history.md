@@ -274,6 +274,8 @@ The intention is visible, even in an unfinished state.
 
 That is the version that waited thirty years.
 
+![OPM Tone Editor v0.07 screenshot](../images/toneeditor007_screenshot.png)
+
 ---
 
 ## Timeline
