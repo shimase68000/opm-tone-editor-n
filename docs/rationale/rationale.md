@@ -14,7 +14,7 @@ efficiently, without friction, in the way an experienced user would work.
 
 ## Designing for OPM Users
 
-OPM Tone Editor is designed for the user who already understand OPM.
+OPM Tone Editor is designed for the user who already understands OPM.
 
 This is a deliberate choice, not a limitation.
 
@@ -50,6 +50,24 @@ Editing two tones in parallel, comparing them directly,\
 copying parameters between them, hearing both together:\
 these are not added features. They follow from the question\
 of what tone editing actually requires.
+
+### OPM Register Responsibility
+
+This context-awareness is grounded in a clear division of hardware responsibility.
+
+OPM Tone Editor and scalekey each own distinct regions of the OPM register space:
+
+- **OPM Tone Editor** controls tone parameters —\
+  operator settings, algorithm, feedback, LFO, pan.
+- **scalekey** controls note and playback —\
+  key on/off and note/octave.
+
+Neither process writes to the other's register domain.\
+This is not a protocol or lock — it is a design agreement.
+
+The result is that tone parameters can be edited freely\
+while notes are playing, without conflict.\
+The hardware boundary makes independent development possible.
 
 ---
 
@@ -208,3 +226,33 @@ It avoids closing off options that the future might need.\
 That instinct — present from the very first version —\
 is what allowed a shelved prototype from 1994\
 to grow into an FM tone workstation in 2025.
+
+---
+
+## On the X68000 Phase
+
+When development resumed in 2023,\
+the goal was not simply to finish what had been left incomplete in 1996.
+
+The X68000 version was conceived from the start as a test case —\
+a working implementation on constrained hardware\
+that would validate the design before it moved to a wider platform.
+
+The X68000 imposes real constraints:\
+limited memory, a single-tasking OS, direct hardware access,\
+assembly language where performance matters.\
+Building a complete FM tone workstation under these conditions\
+is not a compromise. It is a proof.
+
+If the ideas hold up on the X68000,\
+they will hold up anywhere.
+
+Version 1.20 is intended as the close of this phase.\
+Not because the X68000 no longer matters,\
+but because what needed to be validated on this platform\
+will have been validated.
+
+The ecosystem — OPM Tone Editor, scalekey, OED, OTG —\
+will continue on Windows,\
+carrying the same philosophy\
+that was proven on the platform where it began.
