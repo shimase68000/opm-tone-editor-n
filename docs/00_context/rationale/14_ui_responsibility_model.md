@@ -1,9 +1,9 @@
 # UI Responsibility Model
 
-Tone Editor assigns user interface elements
+Tone Editor assigns user interface elements\
 based on the role of each editing operation.
 
-Each editing function is mapped
+Each editing function is mapped\
 to the interface element most suitable for it.
 
 ---
@@ -18,11 +18,11 @@ to the interface element most suitable for it.
 
 Input devices have clearly defined responsibilities:
 
-- keyboard:
-    parameter editing
+- keyboard:\
+&emsp; parameter editing
 
-- mouse:
-    selection and control operations
+- mouse:\
+&emsp; selection and control operations
 
     - tone selection
     - channel selection
@@ -50,10 +50,10 @@ These operations do not interfere with parameter editing.
 
 ## Editing Focus Stability
 
-Because input roles do not overlap,
+Because input roles do not overlap,\
 the cursor does not leave the parameter table during editing.
 
-This eliminates the need to relocate the cursor
+This eliminates the need to relocate the cursor\
 and allows continuous focus on parameter editing.
 
 ---
@@ -113,7 +113,7 @@ Less space is assigned to:
 
 Responsibility separation reduces unnecessary operations.
 
-Each interaction is directed to a specific function,
+Each interaction is directed to a specific function,\
 avoiding redundant input paths.
 
 ---
@@ -142,8 +142,8 @@ The interface maintains:
 
 ## Summary
 
-Tone Editor assigns interface elements
+Tone Editor assigns interface elements\
 based on the role of each editing operation.
 
-This structure maintains a consistent editing flow
+This structure maintains a consistent editing flow\
 and allows uninterrupted focus on parameter editing.
