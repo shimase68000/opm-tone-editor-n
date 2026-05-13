@@ -8,7 +8,7 @@ All parameter changes are applied directly to tone storage.
 
 ## Model
 
-table[0] -> Tone[tan[0]][ton[0]]
+table[0] -> Tone[tan[0]][ton[0]]\
 table[1] -> Tone[tan[1]][ton[1]]
 
 tnsw selects the active table.
@@ -89,5 +89,5 @@ The user always edits the real data.
 
 Editing is direct, not staged.
 
-The parameter table is a view,
+The parameter table is a view,\
 not a buffer.
