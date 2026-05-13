@@ -1,6 +1,6 @@
 # Backup Philosophy
 
-Tone Editor includes multiple safety mechanisms,
+Tone Editor includes multiple safety mechanisms,\
 but they do not protect against all kinds of failure.
 
 ---
@@ -23,14 +23,14 @@ Examples:
 - system crash
 - abnormal shutdown
 
-These failures cannot be fully prevented
+These failures cannot be fully prevented\
 by improving the editor alone.
 
 ---
 
 ## Why Backup Is Needed
 
-Because some failures are external to the editing model,
+Because some failures are external to the editing model,\
 a separate recovery mechanism is required.
 
 This is the role of auto backup.
@@ -61,10 +61,10 @@ Backup protects against system-level loss.
 
 ## BED Format
 
-As preparation for this feature,
+As preparation for this feature,\
 a dedicated backup format named BED is being designed.
 
-Its purpose is to support automatic recovery
+Its purpose is to support automatic recovery\
 without changing the role of existing file formats.
 
 ---
@@ -85,5 +85,5 @@ These mechanisms complement each other.
 
 ## Core Principle
 
-> when one safety mechanism cannot solve a class of failures,
+> when one safety mechanism cannot solve a class of failures,\
 > introduce a separate mechanism with a separate responsibility
