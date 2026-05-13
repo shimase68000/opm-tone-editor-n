@@ -13,10 +13,10 @@ designed for fast and precise parameter editing.
 ## Strategy
 
 - Numeric input:\
-    fast access to target values
+&emsp; fast access to target values
 
 - Incremental input:\
-    fine adjustment and exploration
+&emsp; fine adjustment and exploration
 
 ---
 
@@ -106,3 +106,4 @@ The numeric input system:
 - absorbs invalid input
 - enforces valid output
 - preserves editing continuity
+
