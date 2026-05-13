@@ -1,16 +1,16 @@
 # Input Device Model
 
-Tone Editor uses both keyboard and mouse,
+Tone Editor uses both keyboard and mouse,\
 but their roles are strictly separated.
 
 ---
 
 ## Role Separation
 
-- Keyboard:
+- Keyboard:\
     OPM parameter editing
 
-- Mouse:
+- Mouse:\
     selection and control operations
 
     - tone selection
@@ -53,7 +53,7 @@ This ensures:
 
 ## Design Principle
 
-> assign each input device a fixed role
+> assign each input device a fixed role\
 > to preserve editing focus
 
 ---
