@@ -1,9 +1,9 @@
 # Overall Design
 
-OPM Tone Editor 'N' is designed as a system for editing FM tones
+OPM Tone Editor 'N' is designed as a system for editing FM tones\
 through continuous interaction with sound and data.
 
-The system integrates editing, data handling,
+The system integrates editing, data handling,\
 and real-time feedback into a unified workflow.
 
 ---
@@ -24,7 +24,7 @@ Editing is performed directly on tone data.
 
 There is no intermediate buffer.
 
-Parameter changes are applied immediately
+Parameter changes are applied immediately\
 and reflected in sound output.
 
 ---
@@ -33,10 +33,10 @@ and reflected in sound output.
 
 Tone data is treated as a library.
 
-All tones are reusable and can serve as templates
+All tones are reusable and can serve as templates\
 for further refinement.
 
-Multiple tone sources can be accessed
+Multiple tone sources can be accessed\
 and used within the same session.
 
 ---
@@ -50,14 +50,14 @@ The system provides:
 - dual tone files (dual tone lists + template slots)
 - dual parameter tables
 
-These contexts can be used simultaneously
+These contexts can be used simultaneously\
 to support comparison and refinement.
 
 ---
 
 ## Interaction Model
 
-Interaction is structured by assigning roles
+Interaction is structured by assigning roles\
 to interface elements.
 
 - parameter editing → keyboard
@@ -86,7 +86,7 @@ The layout prioritizes editing tasks.
 
 The system avoids unnecessary use of resources.
 
-The interface is constructed using the text plane,
+The interface is constructed using the text plane,\
 and the graphics plane is not used for normal operation.
 
 Only the elements necessary for editing are implemented.
@@ -112,7 +112,7 @@ Editing and performance are handled separately.
 - Tone Editor → editing system
 - scalekey → performance system
 
-Each system operates independently
+Each system operates independently\
 with defined responsibilities.
 
 ---
@@ -132,7 +132,7 @@ These decisions are reflected across all parts of the system.
 
 ## Summary
 
-OPM Tone Editor 'N' is designed as a structured editing system
-based on reusable tone data,
-continuous interaction,
+OPM Tone Editor 'N' is designed as a structured editing system\
+based on reusable tone data,\
+continuous interaction,\
 and clearly separated responsibilities.
