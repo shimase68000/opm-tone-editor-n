@@ -1,7 +1,7 @@
 # Library-Oriented Editing
 
-Tone Editor is designed around the idea that
-tone data is not a final product,
+Tone Editor is designed around the idea that\
+tone data is not a final product,\
 but a reusable asset.
 
 ---
@@ -21,7 +21,7 @@ There is no strict distinction between:
 - finished tones
 - working tones
 
-Every tone can be reused, modified, and refined
+Every tone can be reused, modified, and refined\
 to create new results.
 
 ---
@@ -42,7 +42,7 @@ Instead, it is based on:
 
 Tone files are not treated as static storage.
 
-They are treated as an active workspace
+They are treated as an active workspace\
 from which tones can be:
 
 - selected
@@ -65,12 +65,12 @@ Editing typically begins from something that already exists.
 
 ---
 
-Creating a tone from scratch is possible,
-but even for experienced users, it is often difficult
+Creating a tone from scratch is possible,\
+but even for experienced users, it is often difficult\
 to reach a desired sound directly.
 
-FM synthesis is not inherently intuitive,
-and translating an abstract sound image into parameters
+FM synthesis is not inherently intuitive,\
+and translating an abstract sound image into parameters\
 requires significant effort and experience.
 
 ---
@@ -101,12 +101,12 @@ This philosophy directly influences the UI design:
 - dual parameter tables
 - template slots
 
-These features support selecting and modifying tones
+These features support selecting and modifying tones\
 across multiple contexts.
 
 ---
 
 ## Summary
 
-Tone Editor is designed to facilitate iterative refinement
+Tone Editor is designed to facilitate iterative refinement\
 using a reusable tone library.
