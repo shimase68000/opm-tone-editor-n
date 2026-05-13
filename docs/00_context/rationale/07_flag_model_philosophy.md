@@ -13,11 +13,11 @@ The flag system consists of two distinct layers:
 
 Persistent layer:
 
-    Tone[tan][ton].mark
+&emsp; Tone[tan][ton].mark
 
 Runtime layer:
 
-    toneflag[tan][ton]
+&emsp; toneflag[tan][ton]
 
 These layers must never be unified.
 
