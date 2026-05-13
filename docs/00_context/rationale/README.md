@@ -2,7 +2,7 @@
 
 This document set defines the design structure of OPM Tone Editor 'N'.
 
-It describes how the system is organized,
+It describes how the system is organized,\
 and how its components relate to each other.
 
 ---
@@ -26,7 +26,7 @@ These elements form a unified editing workflow.
 
 This repository currently contains design rationale only.
 
-Implementation and related materials will be published
+Implementation and related materials will be published\
 after the v1.20 release.
 
 ---
@@ -121,5 +121,5 @@ It provides a consistent description of:
 - how editing is performed  
 - how the system is organized  
 
-Each document describes one aspect of the system,
+Each document describes one aspect of the system,\
 and together they form a complete design definition.
