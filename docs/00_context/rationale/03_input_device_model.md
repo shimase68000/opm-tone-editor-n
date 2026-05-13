@@ -8,10 +8,10 @@ but their roles are strictly separated.
 ## Role Separation
 
 - Keyboard:\
-    OPM parameter editing
+&emsp; OPM parameter editing
 
 - Mouse:\
-    selection and control operations
+&emsp; selection and control operations
 
     - tone selection
     - OPM channel selection
