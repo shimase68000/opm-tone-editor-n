@@ -2,7 +2,7 @@
 
 Tone Editor is designed to minimize unnecessary resource usage.
 
-The system avoids using the graphics plane
+The system avoids using the graphics plane\
 when it is not required for tone editing.
 
 ---
@@ -41,7 +41,7 @@ Tone editing requires:
 - continuous interaction
 - stable and responsive behavior
 
-A lightweight interface supports these requirements
+A lightweight interface supports these requirements\
 by reducing unnecessary system overhead.
 
 ---
@@ -101,5 +101,5 @@ The system maintains:
 
 Tone Editor is designed to avoid unnecessary use of resources.
 
-The interface includes only what is necessary
+The interface includes only what is necessary\
 to support tone editing.
