@@ -10,7 +10,7 @@ This is a deliberate design decision.
 
 Undo is supported only for a specific operation:
 
-    copying between OPM parameter tables
+&emsp; copying between OPM parameter tables
 
 The system uses a single temporary buffer.
 
