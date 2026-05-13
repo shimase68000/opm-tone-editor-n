@@ -2,7 +2,7 @@
 
 Tone Editor uses a multi-layer flag system.
 
-This system is designed to separate responsibilities clearly
+This system is designed to separate responsibilities clearly\
 between persistent state and runtime state.
 
 ---
@@ -27,14 +27,14 @@ These layers must never be unified.
 
 Each flag has a clearly defined ownership.
 
-LOCK
-    persistent only
+LOCK\
+&emsp; persistent only
 
-SELECT
-    persistent only
+SELECT\
+&emsp; persistent only
 
-EDIT
-    runtime only
+EDIT\
+&emsp; runtime only
 
 ## Principle
 
@@ -91,9 +91,9 @@ Instead, helper functions must be used.
 
 Examples:
 
-    flag_select_set()
-    flag_lock_set_main()
-    flag_edit_set_sub()
+&emsp; flag_select_set()\
+&emsp; flag_lock_set_main()\
+&emsp; flag_edit_set_sub()
 
 ## Principle
 
