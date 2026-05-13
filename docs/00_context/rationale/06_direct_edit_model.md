@@ -15,7 +15,7 @@ tnsw selects the active table.
 
 active table (tnsw = 0 or 1):
 
-    table[tnsw] -> Tone[tan[tnsw]][ton[tnsw]]
+&emsp; table[tnsw] -> Tone[tan[tnsw]][ton[tnsw]]
 
 ---
 
