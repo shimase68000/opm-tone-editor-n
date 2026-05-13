@@ -1,6 +1,6 @@
 # Real-Time Feedback
 
-All parameter changes in Tone Editor are applied immediately
+All parameter changes in Tone Editor are applied immediately\
 to the YM2151 (OPM).
 
 ---
@@ -88,5 +88,5 @@ This behavior is tightly coupled with:
 
 ## Summary
 
-Sound is treated as immediate feedback,
+Sound is treated as immediate feedback,\
 not as a delayed result.
