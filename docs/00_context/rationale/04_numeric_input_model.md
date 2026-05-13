@@ -1,6 +1,6 @@
 # Numeric Input Model
 
-Tone Editor uses a dual-layer numeric input system
+Tone Editor uses a dual-layer numeric input system\
 designed for fast and precise parameter editing.
 
 ---
@@ -12,10 +12,10 @@ designed for fast and precise parameter editing.
 
 ## Strategy
 
-- Numeric input:
+- Numeric input:\
     fast access to target values
 
-- Incremental input:
+- Incremental input:\
     fine adjustment and exploration
 
 ---
@@ -24,7 +24,7 @@ designed for fast and precise parameter editing.
 
 Each OPM parameter has its own valid range.
 
-These limits are defined by register bit width
+These limits are defined by register bit width\
 and vary per parameter.
 
 Users are not expected to memorize these constraints.
@@ -37,18 +37,18 @@ Users are not expected to memorize these constraints.
 
 Invalid values are not rejected.
 
-Instead, they are automatically corrected
+Instead, they are automatically corrected\
 into the valid range.
 
 ---
 
 ## Example
 
-max = 7  
+max = 7  \
 input "9" → 7  
 
-max = 15  
-input "9" → 9  
+max = 15  \
+input "9" → 9  \
 input "9" → 99 → 15  
 
 ---
@@ -62,14 +62,14 @@ Input behavior adapts based on:
 - current value
 - parameter limit
 
-If further digit input would exceed the valid range,
+If further digit input would exceed the valid range,\
 the input state resets automatically.
 
 ---
 
 ## Design Principle
 
-> do not interfere with user intent  
+> do not interfere with user intent  \
 > but ensure valid results
 
 ---
