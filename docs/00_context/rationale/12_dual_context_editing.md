@@ -2,7 +2,7 @@
 
 Tone Editor supports editing across multiple contexts simultaneously.
 
-The editor provides multiple views into tone data
+The editor provides multiple views into tone data\
 and allows them to be used in parallel within a single session.
 
 ---
@@ -44,7 +44,7 @@ FM synthesis involves non-linear parameter interactions.
 
 Small parameter changes can result in large differences in sound.
 
-As a result, editing is often guided by relative comparison
+As a result, editing is often guided by relative comparison\
 rather than absolute parameter values.
 
 ---
@@ -53,7 +53,7 @@ rather than absolute parameter values.
 
 This model extends the library-oriented approach.
 
-Tone data is treated as a set of reusable assets,
+Tone data is treated as a set of reusable assets,\
 and multiple assets can be accessed and referenced simultaneously.
 
 ---
@@ -66,14 +66,14 @@ This model is reflected in the interface:
 - dual parameter tables
 - table focus switching
 
-These elements provide access to multiple contexts
+These elements provide access to multiple contexts\
 within a single workspace.
 
 ---
 
 ## Implication
 
-The editor maintains multiple active references
+The editor maintains multiple active references\
 during editing.
 
 This enables:
@@ -88,5 +88,5 @@ This enables:
 
 Tone Editor supports editing with multiple simultaneous contexts.
 
-This structure allows tones to be compared,
+This structure allows tones to be compared,\
 referenced, and refined within a unified workspace.
