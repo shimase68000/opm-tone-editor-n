@@ -16,7 +16,7 @@ It does not attempt to simplify or abstract FM synthesis.
 
 FM synthesis is inherently complex.
 
-Instead of masking this complexity,
+Instead of masking this complexity,\
 the editor presents parameters as they are:
 
 - numeric values
@@ -75,5 +75,5 @@ The interface does not simplify FM synthesis.
 
 It exposes it.
 
-This allows users to understand the sound,
+This allows users to understand the sound,\
 not just manipulate it.
