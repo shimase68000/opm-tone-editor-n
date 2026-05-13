@@ -1,6 +1,6 @@
 # Functional Separation
 
-Tone Editor separates editing and performance
+Tone Editor separates editing and performance\
 into independent systems.
 
 Editing and sound playback are handled by different components.
@@ -57,7 +57,7 @@ These inputs are processed independently from the editing system.
 
 ## Relation to Resource Philosophy
 
-Separating functionality into independent modules
+Separating functionality into independent modules\
 allows each component to operate within its own scope.
 
 This enables:
@@ -70,7 +70,7 @@ This enables:
 
 ## System Relationship
 
-The relationship between the editor and the performance system
+The relationship between the editor and the performance system\
 is structured as follows:
 
 - editor (master)
@@ -84,10 +84,10 @@ The performance system receives input and produces sound.
 
 ## Interface Independence
 
-The performance system is designed to operate
+The performance system is designed to operate\
 with a defined interface.
 
-This allows the editor component to be replaced
+This allows the editor component to be replaced\
 without changing the performance system.
 
 For example:
@@ -95,7 +95,7 @@ For example:
 - Tone Editor (editor) + scalekey (performance)
 - other editor (editor) + scalekey (performance)
 
-The roles remain consistent,
+The roles remain consistent,\
 while the controlling component may vary.
 
 ---
@@ -104,7 +104,7 @@ while the controlling component may vary.
 
 UI responsibility is separated within the editor.
 
-Functional separation extends this concept
+Functional separation extends this concept\
 to the system level.
 
 - editing responsibilities → Tone Editor
@@ -124,8 +124,8 @@ Each system can be:
 
 ## Summary
 
-Tone Editor separates editing and performance
+Tone Editor separates editing and performance\
 into independent systems.
 
-Each system is designed to handle its own role
+Each system is designed to handle its own role\
 without overlapping responsibilities.
