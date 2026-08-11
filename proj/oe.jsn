@@ -1,0 +1,116 @@
+// oe.jsn
+
+{
+    // 使用者名
+    "author" : "",
+
+    // EXECコマンド名 (default: "OE")
+    "exec_command" : "OE",
+
+    // 自動的にファイルを書き込み禁止にする機能 (default: true)
+    //  false: 無効
+    //   true: 有効
+    "auto_readonly" : true,
+
+    // マウス長押し時の連続変化速度 (default: medium)
+    //   "fast" : 高速
+    // "medium" : 標準
+    //   "slow" : 低速
+    "mouse_repeat_speed" : "medium",
+
+    // マウスオーバー説明表示 (default: true)
+    //  false: 無効
+    //   true: 有効
+    "mouseover_help" : true,
+
+    "file_io" : {
+        // MML/OPM 書き出し時の音色番号オフセット（fileA/fileB 用） (default: 0)
+        // -99999 ～ +99999 の範囲で指定
+        // 音色番号は 1 から始まり、そこに offset を加えた番号で出力する
+        //   既定値 0 のとき  @1 ～ @200
+        "offset_export_tone_number" : 0,
+
+        // MML/OPM 書き出し時の音色番号オフセット（テンプレートスロット用） (default: 200)
+        // -99999 ～ +99999 の範囲で指定
+        // 音色番号は 1 から始まり、そこに offset を加えた番号で出力する
+        //   既定値 200 のとき  @201 ～ @208
+        "offset_export_template_number" : 200,
+
+        // ファイル読み込み時の編集対象 OPMチャンネル設定
+        "default_opm_channel" : {
+        //               ABCD EFGH
+            "default" : "1111_1111",
+                "mml" : "1111_1111",
+                "snd" : "1111_1111",
+                "mdx" : "1111_1111",
+                "opm" : "1111_1111",
+                "zms" : "1111_1111"
+        },
+
+        // 読み込み時に音色を自動選択するか
+        "auto_select_imported_tones" : {
+            "mml" : true,
+            "snd" : false,
+            "mdx" : true,
+            "opm" : true,
+            "zms" : true
+        }
+    },
+
+    "scalekey" : {
+        // 起動時に scalekey を常駐させるか (default: true)
+        //  false: 常駐しない
+        //   true: 常駐する
+        "load_on_startup" : true,
+
+        // 終了時に scalekey を解除するか (default: true)
+        //  false: 解除しない
+        //   true: 解除する
+        "unload_on_exit" : true,
+
+        // OPM チャンネルの割り当て方式 (default: "sequential")
+        //   "sequential" : 下位チャンネルから順に割り当て
+        //  "round_robin" : 順送りで割り当て
+        "channel_assign_policy" : "sequential",
+
+        // OPM チャンネルの割り当て方式2 (default: "over")
+        //   "hold" : 先着優先
+        //   "over" : 後着優先
+        "channel_assign_priority" : "over",
+
+        // OPM への割り当て開始チャンネル (default: 0)
+        // 0～7 の範囲で指定 (0=Ch.A)
+        "start_scan_channel" : 0,
+
+        // MIDI チャンネルフィルタ (default: "any")
+        //      "off" : 無効
+        //      "any" : 全チャンネルを受け付ける
+        //  "1"～"16" : 指定チャンネルのみ受け付ける
+        "midi_channel_filter" : "any",
+
+        // 使用する OPM チャンネル (default: "1111_1111")
+        //               ABCD EFGH
+        "opm_channel" : "1111_1111",
+
+        // 最大同時発音数 (default: 8)
+        // 0～8 の範囲で指定 (opm_channel数を越える場合は自動補正)
+        "polyphony" : 8,
+
+        // ユニゾン数 (default: 1)
+        // 0～8 の範囲で指定
+        "unison" : 1,
+
+        // UNISON 演奏時のディレイ時間 (default: 0)
+        // 0～500 の範囲で指定 (0=OFF)
+        "delay_count" : 0,
+
+        // ノートオフセット（半音単位） (default: 45)
+        // -3 ～ 92 の範囲で指定（±12 で ±1 オクターブ）
+        "offset" : 45,
+
+        // オクターブシフトキー設定 (default: 0)
+        //  0:CTRL↑/SHIFT↓ (for X68000 keyboard)
+        //  1:CTRL↓/SHIFT↑
+        "octkey" : 1
+    }
+}
