@@ -15,7 +15,7 @@ lets you edit a tone in real time while actually hearing it.
 In v1.20 the performance features were extended, so you can now edit tones
 under conditions closer to actual playing, using **unison, delay, and detune**.
 
-![OPM Tone Editor 'Ｎ' Screenshot](docs/images/ui_01_toneeditor_main_screenshot.png)
+![OPM Tone Editor 'Ｎ' Screenshot](docs/images/toneeditor120_screenshot.png)
 
 ---
 
