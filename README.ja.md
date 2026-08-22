@@ -15,7 +15,7 @@ OPM Tone Editor 'Ｎ' では、
 v1.20 では演奏機能が強化され、
 **ユニゾン・ディレイ・ディチューン**を使った、より実際の演奏に近い状態での音色編集が可能です。
 
-![OPM Tone Editor 'Ｎ' Screenshot](docs/images/ui_01_toneeditor_main_screenshot.png)
+![OPM Tone Editor 'Ｎ' Screenshot](docs/images/toneeditor120_screenshot.png)
 
 ---
 
