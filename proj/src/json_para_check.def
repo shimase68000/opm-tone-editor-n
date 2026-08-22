@@ -1,0 +1,52 @@
+//
+// json_para_check.def
+//    included in json.c
+//
+// NOTE:
+// para_check_table targets only int members in CONFIG.
+// Do not register char*, array, struct, or non-int fields here.
+
+#include "minmax.h"
+
+typedef struct {
+	size_t offset;
+	int    min;
+	int    max;
+} PARA_CHECK;
+
+static const PARA_CHECK para_check_table[] = {
+	// top layer
+	{offsetof(CONFIG, auto_readonly), MIN_AUTO_READONLY, MAX_AUTO_READONLY},
+	{offsetof(CONFIG, mouseover_help), MIN_MOUSEOVER_HELP, MAX_MOUSEOVER_HELP},
+	{offsetof(CONFIG, mouse_repeat_speed), MIN_MOUSE_REPEAT_SPEED, MAX_MOUSE_REPEAT_SPEED},
+
+	// scalekey layer
+	{offsetof(CONFIG, scalekey.offset), MIN_SCALEKEY_OFFSET, MAX_SCALEKEY_OFFSET},
+	{offsetof(CONFIG, scalekey.octkey), MIN_SCALEKEY_OCTKEY, MAX_SCALEKEY_OCTKEY},
+	{offsetof(CONFIG, scalekey.load_on_startup), MIN_SCALEKEY_LOAD, MAX_SCALEKEY_LOAD},
+	{offsetof(CONFIG, scalekey.unload_on_exit), MIN_SCALEKEY_UNLOAD, MAX_SCALEKEY_UNLOAD},
+	{offsetof(CONFIG, scalekey.channel_assign_policy), MIN_CHANNEL_ASSIGN_POLICY, MAX_CHANNEL_ASSIGN_POLICY},
+	{offsetof(CONFIG, scalekey.channel_assign_priority), MIN_CHANNEL_ASSIGN_PRIORITY, MAX_CHANNEL_ASSIGN_PRIORITY},
+	{offsetof(CONFIG, scalekey.start_scan_channel), MIN_SCALEKEY_START_CHANNEL, MAX_SCALEKEY_START_CHANNEL},
+	{offsetof(CONFIG, scalekey.delay_count), MIN_SCALEKEY_DELAY_COUNT, MAX_SCALEKEY_DELAY_COUNT},
+	{offsetof(CONFIG, scalekey.opm_channel), MIN_SCALEKEY_OPM_CHANNEL, MAX_SCALEKEY_OPM_CHANNEL},
+	{offsetof(CONFIG, scalekey.polyphony), MIN_SCALEKEY_POLY_COUNT, MAX_SCALEKEY_POLY_COUNT},
+	{offsetof(CONFIG, scalekey.unison), MIN_SCALEKEY_UNISON_COUNT, MAX_SCALEKEY_UNISON_COUNT},
+	{offsetof(CONFIG, scalekey.midi_channel_filter), MIN_MIDI_CHANNEL_FILTER, MAX_MIDI_CHANNEL_FILTER},
+
+	// opm_channel layer
+	{offsetof(CONFIG, opm_channel.def), MIN_OPM_CHANNEL_DEFAULT, MAX_OPM_CHANNEL_DEFAULT},
+	{offsetof(CONFIG, opm_channel.mml), MIN_OPM_CHANNEL_MML, MAX_OPM_CHANNEL_MML},
+	{offsetof(CONFIG, opm_channel.snd), MIN_OPM_CHANNEL_SND, MAX_OPM_CHANNEL_SND},
+	{offsetof(CONFIG, opm_channel.mdx), MIN_OPM_CHANNEL_MDX, MAX_OPM_CHANNEL_MDX},
+	{offsetof(CONFIG, opm_channel.opm), MIN_OPM_CHANNEL_OPM, MAX_OPM_CHANNEL_OPM},
+	{offsetof(CONFIG, opm_channel.zms), MIN_OPM_CHANNEL_ZMS, MAX_OPM_CHANNEL_ZMS},
+
+	// auto_select layer
+	{offsetof(CONFIG, auto_select.oed), MIN_AUTO_SELECT_OED, MAX_AUTO_SELECT_OED},
+	{offsetof(CONFIG, auto_select.mml), MIN_AUTO_SELECT_MML, MAX_AUTO_SELECT_MML},
+	{offsetof(CONFIG, auto_select.snd), MIN_AUTO_SELECT_SND, MAX_AUTO_SELECT_SND},
+	{offsetof(CONFIG, auto_select.mdx), MIN_AUTO_SELECT_MDX, MAX_AUTO_SELECT_MDX},
+	{offsetof(CONFIG, auto_select.opm), MIN_AUTO_SELECT_OPM, MAX_AUTO_SELECT_OPM},
+	{offsetof(CONFIG, auto_select.zms), MIN_AUTO_SELECT_ZMS, MAX_AUTO_SELECT_ZMS}
+};

@@ -56,7 +56,6 @@ CPUFLAGS  = -mcpu=68000
 CWARN     = -Wall -Wextra
 
 CFLAGS   := $(CPUFLAGS) $(CWARN) -O2 $(CPPFLAGS) -MMD -MP
-#CFLAGS   := $(CPUFLAGS) $(CWARN) $(CPPFLAGS) -MMD -MP
 LDFLAGS  := $(SPECS) -Wl,-s
 
 ASFLAGS  := -m 68000 -i ./$(XINCDIR_S)
