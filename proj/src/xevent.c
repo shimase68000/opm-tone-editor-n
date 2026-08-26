@@ -130,9 +130,10 @@ static void print_disp_setting(void)
 		scalekey_poly_count,
 		scalekey_unison_count);
 
-	printf("    opm_channel:%s  midi_channel_filter:%s\n",
+	printf("    opm_channel:%s  midi_channel_filter:%s  midi_enable:%s\n",
 		bits8str(scalekey_opm_channel, b0),
-		midifilter_str(scalekey_midi_channel_filter, mfbuf));
+		midifilter_str(scalekey_midi_channel_filter, mfbuf),
+		onoff(config.scalekey.midi_enable));
 
 	printf("    delay_count:%-3d        start_scan_channel:%c>\n",
 		delay_count,

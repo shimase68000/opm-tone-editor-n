@@ -58,6 +58,8 @@ extern TABLENUM tb[2];
 extern int	    tnsw;
 extern struct   NAMECKBUF FileInf[2];  // filename
 extern int      template_all_lock;
+extern int      scalekey_midi_board_not_exist;
+extern int      scalekey_midi_disabled;
 
 void mev_ExecMenu(int,int,int,int,int*,int*);
 void mev_EditToneMemo(int,int);
@@ -617,6 +619,12 @@ void mev_disp_scalekey_exec_path(void)
 
 	sprintf(mbuf1, "SCALEKEY version %s " C32 "available" C33, my_ver2str(scalekey_version));
 	strcat(mbuf0, mbuf1);
+
+	if(scalekey_midi_disabled) {
+		strcat(mbuf0, C31 " (MIDI disabled)" C33);
+	} else if(scalekey_midi_board_not_exist) {
+		strcat(mbuf0, C31 " (MIDI not installed)" C33);
+	}
 
 	C_MES(C33, mbuf0, MESTIME_LONG);
 }

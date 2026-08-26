@@ -15,6 +15,7 @@
 #include	"mylib.h"
 
 extern int scalekey_midi_board_not_exist;
+extern int scalekey_midi_disabled;
 extern int scalekey_midi_channel_filter;
 extern int scalekey_poly_count;
 extern int scalekey_unison_count;
@@ -45,6 +46,7 @@ void midi_keyoff_all(void);
 int  set_opm_scale_offset(int);
 int  set_delay_count(int);
 void set_scalekey_octkey(int);
+int  get_scalekey_midi_status(void);
 EXECPATH *get_scalekey_exec_path(void);
 
 int scalekey_available = 0;
@@ -70,6 +72,27 @@ int get_scalekey_version(void)
 		return (int)trap7(TRAP7_DISPONOFF, GETVERSION, 0);
 	}
 	return -2;
+}
+
+//
+// get scalekey MIDI status
+//   SKMIDI_DISABLED (0): scalekey は -n で常駐しており、YM3802 に触れていない
+//   SKMIDI_ENABLED  (1): MIDI 利用可能
+//
+//   TRAP7_MIDI_STATUS は v1.11 で追加された。それ未満の scalekey は
+//   ディスパッチャの範囲チェックで弾き、戻り値が不定になるため呼ばない。
+//   その場合は常に MIDI 有効（v1.10 以前の唯一の動作）とみなす。
+//
+int get_scalekey_midi_status(void)
+{
+	if(!scalekey_available) return SKMIDI_DISABLED;
+
+	if(my_ver2int(get_scalekey_version()) <
+	   my_ver2int(my_str2ver(MIDI_STATUS_SCALEKEY_VERSION))) {
+		return SKMIDI_ENABLED;
+	}
+
+	return (int)trap7(TRAP7_MIDI_STATUS, 0, 0);
 }
 
 //
@@ -244,6 +267,10 @@ void *init_scalekey_trap7(void)
 
 	// input enable (keyboard and MIDI input)
 	trap7(TRAP7_ENABLE_KEYIN, 0b11, 0);
+
+	// MIDI 経路が生きているか（-n で常駐していないか）
+	//   MIDI ボードの有無より前に決まる状態なので、先に確定させる。
+	scalekey_midi_disabled = (get_scalekey_midi_status() == SKMIDI_DISABLED);
 
 	// check MIDI board
 	scalekey_midi_board_not_exist = check_midi_board();

@@ -85,6 +85,7 @@ int	     ln;			// cursor
 int	     Vol[2][8];		// channel volume
 int      scalekey_channel_assign_policy;
 int      scalekey_midi_board_not_exist;
+int      scalekey_midi_disabled;        // scalekey started with -n
 
 extern int scalekey_midi_channel_filter;
 extern int opm_scale_offset;

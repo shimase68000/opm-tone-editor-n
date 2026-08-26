@@ -74,6 +74,7 @@ extern int delay_count;
 extern int start_channel;
 extern int scalekey_channel_assign_policy;
 extern int scalekey_midi_board_not_exist;
+extern int scalekey_midi_disabled;
 
 int scalekey_poly_count;
 int scalekey_unison_count;
@@ -655,7 +656,10 @@ void PutOPMChannelScalekey(void)
 	}
 
 	sbuf1[0] = '\0';
-	if(scalekey_midi_board_not_exist) {
+	if(scalekey_midi_disabled) {
+		// scalekey が -n で常駐している（MIDI 経路そのものが無効）
+		sprintf(sbuf1, MIDI_CHANNEL_FILTER_DISABLED);
+	} else if(scalekey_midi_board_not_exist) {
 		sprintf(sbuf1, MIDI_CHANNEL_FILTER_NONE);
 	} else {
 		sprintf(sbuf1, MIDI_CHANNEL_FILTER_BASE, str_scalekey_midi_channel_filter[scalekey_midi_channel_filter+1]);

@@ -13,8 +13,11 @@
 #include    "scalekey.h"
 #include	"escseq.h"
 #include	"key_input.h"
+#include    "message.h"
+#include    "mylib.h"
 
 extern int check_scalekey_version(void);
+extern int get_scalekey_midi_status(void);
 extern int scalekey_available;
 extern FUNC_PTR scalekey_main;
 extern CONFIG config;
@@ -83,7 +86,14 @@ int load_scalekey_on_startup(int sw)
 	//   SKCHK_NOT_EXIST に限定することで、この経路を塞ぐ。
 	if(stat == SKCHK_NOT_EXIST && config.scalekey.load_on_startup) {
 		// exec scalekey.r
-		system(COMMAND_EXEC_LOAD_SCALEKEY);
+		//   midi_enable が false なら -n を付けて常駐させる。scalekey は
+		//   YM3802 を一切初期化しないので、MIDI 割り込みを持つ外部サウンド
+		//   ドライバと共存できる。
+		if(config.scalekey.midi_enable) {
+			system(COMMAND_EXEC_LOAD_SCALEKEY);
+		} else {
+			system(COMMAND_EXEC_LOAD_SCALEKEY_N);
+		}
 
 		// re-check scalekey and set scalekey_available
 		stat = check_scalekey_version();
@@ -122,6 +132,20 @@ int load_scalekey_on_startup(int sw)
 		// scalekey acquired (mstat == MOM_ACQUIRED)
 		scalekey_main = init_scalekey_trap7();
 	}
+
+	// midi_enable=false を指定したが、常駐中の scalekey が古く、
+	// -n を解釈できない（= MIDI を初期化済みかもしれない）場合の警告。
+	// 起動は妨げない。
+	if(sw == 0 && !config.scalekey.midi_enable) {
+		if(my_ver2int(get_scalekey_version()) <
+		   my_ver2int(my_str2ver(MIDI_STATUS_SCALEKEY_VERSION))) {
+			printf(MES_SCALEKEY_MIDI_ENABLE_UNSUPPORTED,
+			       my_ver2str(my_str2ver(MIDI_STATUS_SCALEKEY_VERSION)));
+			keyin_wait();
+			printf("\n");
+		}
+	}
+
 	return 0;
 }
 

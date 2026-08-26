@@ -779,6 +779,10 @@ void store_config_data(CONFIG *cfg)
 	key = get_keyval(JSON_HIERVAL_SCALEKEY, JSON_KEY_SCALEKEY_UNLOAD);
 	cfg->scalekey.unload_on_exit = json_tovalue(key->i_val, key->c_val, key->i_def, key->c_flag);
 
+	// scalekey.midi_enable
+	key = get_keyval(JSON_HIERVAL_SCALEKEY, JSON_KEY_SCALEKEY_MIDI_ENABLE);
+	cfg->scalekey.midi_enable = json_tovalue(key->i_val, key->c_val, key->i_def, key->c_flag);
+
 	// scalekey.opm_channel
 	key = get_keyval(JSON_HIERVAL_SCALEKEY, JSON_KEY_SCALEKEY_OPM_CHANNEL);
 	cfg->scalekey.opm_channel = json_tochannel(key->c_val, key->i_def, key->c_flag);
@@ -869,6 +873,7 @@ void print_config(const CONFIG *cfg)
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_OCTKEY, cfg->scalekey.octkey);
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_LOAD, cfg->scalekey.load_on_startup);
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_UNLOAD, cfg->scalekey.unload_on_exit);
+	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_MIDI_ENABLE, cfg->scalekey.midi_enable);
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_POLICY, cfg->scalekey.channel_assign_policy);
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_PRIORITY, cfg->scalekey.channel_assign_priority);
 	printf( "%s.%s = %d\n", JSON_KEY_SCALEKEY, JSON_KEY_SCALEKEY_START_CHANNEL, cfg->scalekey.start_scan_channel);

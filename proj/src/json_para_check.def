@@ -33,6 +33,7 @@ static const PARA_CHECK para_check_table[] = {
 	{offsetof(CONFIG, scalekey.polyphony), MIN_SCALEKEY_POLY_COUNT, MAX_SCALEKEY_POLY_COUNT},
 	{offsetof(CONFIG, scalekey.unison), MIN_SCALEKEY_UNISON_COUNT, MAX_SCALEKEY_UNISON_COUNT},
 	{offsetof(CONFIG, scalekey.midi_channel_filter), MIN_MIDI_CHANNEL_FILTER, MAX_MIDI_CHANNEL_FILTER},
+	{offsetof(CONFIG, scalekey.midi_enable), MIN_SCALEKEY_MIDI_ENABLE, MAX_SCALEKEY_MIDI_ENABLE},
 
 	// opm_channel layer
 	{offsetof(CONFIG, opm_channel.def), MIN_OPM_CHANNEL_DEFAULT, MAX_OPM_CHANNEL_DEFAULT},

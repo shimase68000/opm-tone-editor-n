@@ -65,6 +65,7 @@ extern int  scalekey_poly_count;
 extern int  scalekey_channel_assign_policy;
 extern int  scalekey_midi_channel_filter;
 extern int  scalekey_midi_board_not_exist;
+extern int  scalekey_midi_disabled;
 extern int  opm_scale_offset;
 extern int  delay_count;
 extern int  start_channel;
@@ -943,7 +944,7 @@ void mev_ScalekeyStartChannel(int bl, int br, int *sbl, int *sbr)
 //
 void mev_ScalekeyMIDIChannelFilter(int bl, int br, int *sbl, int *sbr)
 {
-	if(scalekey_midi_board_not_exist) return;
+	if(scalekey_midi_board_not_exist||scalekey_midi_disabled) return;
 
     if(bl && !*sbl) {
 		*sbl = -1;
