@@ -85,7 +85,8 @@ scalekey は別途リリースしています。
 
 - [scalekey](https://github.com/shimase68000/scalekey) / [scalekey Releases](https://github.com/shimase68000/scalekey/releases)
 
-Tone Editor v1.20 は scalekey v1.10 以降と組み合わせて動作します。
+Tone Editor v1.21 は scalekey v1.10 以降と組み合わせて動作します。
+`scalekey.midi_enable` の設定を使う場合は scalekey v1.11 以降が必要です。
 
 ---
 
