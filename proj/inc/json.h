@@ -77,6 +77,7 @@ enum {
 #define JSON_KEY_SCALEKEY_PRIORITY       "channel_assign_priority"
 #define JSON_KEY_SCALEKEY_START_CHANNEL  "start_scan_channel"
 #define JSON_KEY_SCALEKEY_DELAY_COUNT    "delay_count"
+#define JSON_KEY_SCALEKEY_MIDI_ENABLE    "midi_enable"
 
 // layer default_opm_channel
 //   No "oed" key: an OED file carries its own opm_channel setting.
@@ -132,6 +133,7 @@ enum {
 #define DEFAULT_CFG_SCALEKEY_UNISON         1
 #define DEFAULT_CFG_SCALEKEY_DELAY_COUNT    0            // 0:Delay OFF
 #define DEFAULT_CFG_SCALEKEY_CHANNEL_FILTER 0            // -1:Off, 0:Any, 1-16:Ch.1-16
+#define DEFAULT_CFG_SCALEKEY_MIDI_ENABLE    1            // enable
 //
 #define DEFAULT_CFG_AUTO_SELECT_OED         0
 #define DEFAULT_CFG_AUTO_SELECT_MML         1
@@ -198,6 +200,7 @@ typedef struct {
 	int   unison;
 	int   delay_count;
 	int   midi_channel_filter;
+	int   midi_enable;
 } CONFIG_SCALEKEY;
 
 typedef struct {

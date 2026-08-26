@@ -10,7 +10,7 @@ typedef void (*FUNC_PTR)(void);
 
 #define FILEPATH_LENGTH (sizeof(struct NAMECKBUF))
 
-#define OE_VERSION      "1.20"
+#define OE_VERSION      "1.21"
 
 #ifndef _debug_test_version_
   #define OE_SUBVERSION ""

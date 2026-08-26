@@ -24,7 +24,19 @@ enum SCALEKEY_API_NUMBER {
 	TRAP7_DELAY_COUNT,
 	TRAP7_ACCESS_PERMISSION,
 	TRAP7_EXEC_PATH,
-	TRAP7_MARK_OF_MASTER
+	TRAP7_MARK_OF_MASTER,
+	TRAP7_MIDI_STATUS      // v1.11-: get MIDI enable status
+};
+
+// TRAP7_MIDI_STATUS が追加された scalekey の版数。
+//   これ未満の scalekey に投げると、ディスパッチャの範囲チェックで
+//   弾かれて戻り値が不定になる。呼ぶ前に必ず版数を確かめること。
+#define MIDI_STATUS_SCALEKEY_VERSION  "1.11"
+
+// TRAP7_MIDI_STATUS の戻り値
+enum SCALEKEY_MIDI_STATUS {
+	SKMIDI_DISABLED = 0,           // started with -n : YM3802 untouched
+	SKMIDI_ENABLED                 // MIDI available
 };
 
 // scalekey availability

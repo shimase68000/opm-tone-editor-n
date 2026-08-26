@@ -17,6 +17,10 @@
 #define MES_CONFIRM_START_ANYWAY "このまま %s%s を起動してもよろしいですか？ [Y/N]"
 #define MES_CONFIG_READ_ERROR    "設定ファイル %s%s%s の読み込み中にエラーが発生しました。"
 
+// scalekey.midi_enable が false だが、常駐している scalekey が古い
+#define MES_SCALEKEY_MIDI_ENABLE_UNSUPPORTED \
+    "scalekey.midi_enable の設定には scalekey version %s 以降が必要です。[push ENTER to continue]"
+
 // check scalekey version
 #define MES_CHECK_SCALEKEY_VERSION0 "scalekey version %s が検出されました。"
 #define MES_CHECK_SCALEKEY_VERSION1 "version %s 以降をご使用ください。"

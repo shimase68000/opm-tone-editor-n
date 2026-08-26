@@ -196,8 +196,14 @@ UNI9/POLY9SEQ-HOLD
 #define SCALEKEY_DELAY_NONE     C32 "[DLY:" C1 "OFF" C1 "]" C0
 #define SCALEKEY_DELAY_BASE     C32 "[DLY:" C1 "%3d" C1 "]" C0
 
-#define MIDI_CHANNEL_FILTER_NONE   C43 "[MIDI:None]" C0
-#define MIDI_CHANNEL_FILTER_BASE   C42 "[MIDI:" C1 "%s" C1 "]" C0
+// MIDI 表示欄の枠。NONE/DISABLED は枠ごと、BASE はフィルタ値を差し込む。
+//   None     : MIDI ボードが無い
+//   Off      : scalekey が -n で常駐している（YM3802 に触れていない）
+#define MIDI_CHANNEL_FILTER_NONE     C43 "[MIDI:None]" C0
+#define MIDI_CHANNEL_FILTER_DISABLED C43 "[MIDI:Off ]" C0
+#define MIDI_CHANNEL_FILTER_BASE     C42 "[MIDI:" C1 "%s" C1 "]" C0
+
+// フィルタ値の文字列（str_scalekey_midi_channel_filter[] の要素）
 #define MIDI_CHANNEL_FILTER_OFF    "OFF "
 #define MIDI_CHANNEL_FILTER_ANY    "Any "
 #define MIDI_CHANNEL_FILTER_CH1    "Ch.1"

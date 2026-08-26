@@ -42,7 +42,10 @@
 #define SCALEKEY_V101_SIGNATURE       0x38
 
 // exec command
+//   -n を付けた版は、外部サウンドドライバが MIDI 割り込みを持っている
+//   場合に使う。scalekey は YM3802 を一切初期化しない。
 #define COMMAND_EXEC_LOAD_SCALEKEY    "scalekey -s"
+#define COMMAND_EXEC_LOAD_SCALEKEY_N  "scalekey -n -s"
 #define COMMAND_EXEC_UNLOAD_SCALEKEY  "scalekey -r -s"
 
 // notify message status
@@ -60,8 +63,8 @@ enum SCALEKEY_MESSAGE {
 #define MES_SCALEKEY_NOT_EXIST0      "scalekey が見つかりません。演奏機能なしで起動しますか？[Y/N]"
 #define MES_SCALEKEY_NOT_EXIST1      "scalekey が見つかりません。演奏機能は使用できません。[ENTER]"
 
-#define MES_SCALEKEY_UNSUPPORTED0    "scalekey のバージョンがサポート外です。演奏機能なしで起動しますか？[Y/N]"
-#define MES_SCALEKEY_UNSUPPORTED1    "scalekey のバージョンがサポート外です。演奏機能は使用できません。[ENTER]"
+#define MES_SCALEKEY_UNSUPPORTED0    "scalekey のバージョンがサポート外です（v" REQUIRED_SCALEKEY_VERSION "以降が必要）。演奏機能なしで起動しますか？[Y/N]"
+#define MES_SCALEKEY_UNSUPPORTED1    "scalekey のバージョンがサポート外です（v" REQUIRED_SCALEKEY_VERSION "以降が必要）。演奏機能は使用できません。[ENTER]"
 
 #define MES_SCALEKEY_ALREADY_IN_USE0 "他のプロセスが scalekey を使用中です。演奏機能なしで起動しますか？（前回の異常終了の場合は scalekey を再常駐させてください）[Y/N]"
 #define MES_SCALEKEY_ALREADY_IN_USE1 "他のプロセスが scalekey を使用中です。演奏機能は使用できません。[ENTER]"

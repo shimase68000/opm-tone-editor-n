@@ -39,6 +39,9 @@
 #define MIN_SCALEKEY_UNLOAD          0     // true/false
 #define MAX_SCALEKEY_UNLOAD          1
 
+#define MIN_SCALEKEY_MIDI_ENABLE     0     // true/false
+#define MAX_SCALEKEY_MIDI_ENABLE     1
+
 #define MIN_SCALEKEY_OPM_CHANNEL     (0b00000000)
 #define MAX_SCALEKEY_OPM_CHANNEL     (0b11111111)
 
