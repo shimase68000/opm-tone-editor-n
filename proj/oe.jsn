@@ -82,6 +82,16 @@
         // 0～7 の範囲で指定 (0=Ch.A)
         "start_scan_channel" : 0,
 
+        // MIDI 入力を有効にするか (default: true)
+        //  false: 無効。scalekey は MIDI インターフェース（YM3802）を
+        //         初期化しません。MIDI を制御する外部サウンドドライバを
+        //         常駐させたまま音色編集する場合に指定します。
+        //         この場合、MIDI 入力による演奏はできません。
+        //         （キーボードからの演奏は可能です）
+        //   true: 有効
+        // ※ scalekey version 1.11 以降が必要です。
+        "midi_enable" : true,
+
         // MIDI チャンネルフィルタ (default: "any")
         //      "off" : 無効
         //      "any" : 全チャンネルを受け付ける
