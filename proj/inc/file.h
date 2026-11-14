@@ -46,6 +46,12 @@
 #define	READBUF		        2048
 #define FILESIZE_SND        16000
 
+// NOTE tone bank (tone.bin)
+#define BIN_TONENUM         (256)           // voice slots
+#define BIN_TONESIZE        (27)            // bytes per record
+#define BIN_FLAG_SIZE       (BIN_TONENUM)   // valid-flag table
+#define FILESIZE_BIN        (BIN_FLAG_SIZE + BIN_TONENUM*BIN_TONESIZE)  // 7168
+
 enum FILE_FORM {
 	FORM_OED = 1,  // .oed
 	FORM_SND,      // .snd
@@ -54,6 +60,7 @@ enum FILE_FORM {
 	FORM_MUS,      // .mus
 	FORM_OPM,      // .opm
 	FORM_ZMS,      // .zms
+	FORM_BIN       // .bin
 };
 
 #define STR_FILEEXT_OED     ".OED"
@@ -63,6 +70,7 @@ enum FILE_FORM {
 #define STR_FILEEXT_MUS     ".MUS"  // *dummy*
 #define STR_FILEEXT_OPM     ".OPM"
 #define STR_FILEEXT_ZMS     ".ZMS"
+#define STR_FILEEXT_BIN     ".BIN"
 
 // File status strings shown by check_file_status().
 //   RO and DIR carry two colour sequences, so they are longer than they

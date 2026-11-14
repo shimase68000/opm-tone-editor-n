@@ -10,12 +10,12 @@ typedef void (*FUNC_PTR)(void);
 
 #define FILEPATH_LENGTH (sizeof(struct NAMECKBUF))
 
-#define OE_VERSION      "1.21"
+#define OE_VERSION      "1.22"
 
 #ifndef _debug_test_version_
   #define OE_SUBVERSION ""
 #else
-  #define OE_SUBVERSION "b-26.08.04"
+  #define OE_SUBVERSION "a-2026.11.14"
 #endif
 
 #define OE_MYNAME       "OPM Tone Editor 'Ｎ'"

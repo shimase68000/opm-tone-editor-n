@@ -52,11 +52,11 @@ extern TABLENUM tb[2];
 extern int tt[3];
 extern CONFIG config;
 
-int  fform(char*);
-int  read_binary_file(char*,int);
-int  check_samefile(int, struct NAMECKBUF*);
-char *MakeStrFilename(char*);
-char *MakeStrDateTime(int);
+static int  fform(char*);
+static int  read_binary_file(char*,int);
+static int  check_samefile(int, struct NAMECKBUF*);
+static char *MakeStrFilename(char*);
+static char *MakeStrDateTime(int);
 
 static int getn(char*,int*,int);
 static int getfc(char*,int*,int);
@@ -68,6 +68,7 @@ static int snd2tone(int,char*);
 static int mml2tone(int,char*,int);
 static int opm2tone(int,char*,int);
 static int mdx2tone(int,char*);
+static int bin2tone(int,char*);
 static int tone2oed(int,char*);
 static int tone2ted(int,char*);  // not implemented
 static int tone2mml(int,char*);
@@ -75,6 +76,7 @@ static int tone2opm(int,char*);
 static int tone2snd(int,char*);
 static int oed_validate(char*,int);
 
+static void unpack_mdx_tone(OPMDATA*,char*);
 static void backup_tonedata(int);
 static void restore_tonedata(int);
 
@@ -114,7 +116,8 @@ static const char *ferror_message[] = {
 	MES_FERR_ILLEGAL_SNDFILE,
 	MES_FERR_ILLEGAL_MMLFILE,
 	MES_FERR_ILLEGAL_MDXFILE,
-	MES_FERR_ILLEGAL_OEDFILE
+	MES_FERR_ILLEGAL_OEDFILE,
+	MES_FERR_ILLEGAL_BINFILE
 };
 
 //
@@ -314,6 +317,10 @@ void FileLoad(int tan, int sw)
 			status = mdx2tone(tan, filename);
 			break;
 
+		case FORM_BIN:
+			status = bin2tone(tan, filename);
+			break;
+
 		case FORM_MML:
 		case FORM_MUS:
 			status = mml2tone(tan, filename, form);
@@ -410,6 +417,8 @@ void FileSave(int form, int tan, int sw)
 	if(fileedit_flag[tan] < 0) return;
 
 	// check file format & set file ext
+	//   FORM_BIN / FORM_MDX / FORM_MUS / FORM_ZMS are import-only;
+	//   FileSave() is never called with them.
 	fileext = STR_FILEEXT_OED;
 	switch(form) {
 		case FORM_OED:
@@ -560,7 +569,7 @@ void FileSave(int form, int tan, int sw)
 // check samefile
 //   returns 1 if export destination matches import source, 0 otherwise
 //
-int check_samefile(int tan, struct NAMECKBUF *fbuf)
+static int check_samefile(int tan, struct NAMECKBUF *fbuf)
 {
 	char src[sizeof(struct NAMECKBUF)];
 	char dst[sizeof(struct NAMECKBUF)];
@@ -583,7 +592,7 @@ int check_samefile(int tan, struct NAMECKBUF *fbuf)
 // form validation
 //   no match -> FORM_OED
 //
-int fform(char *filename)
+static int fform(char *filename)
 {
 	char e[5];
 
@@ -596,8 +605,57 @@ int fform(char *filename)
 	if(!strcmpi(e, "mml")) return FORM_MML;
 	if(!strcmpi(e, "opm")) return FORM_OPM;
 	if(!strcmpi(e, "zms")) return FORM_ZMS;
+	if(!strcmpi(e, "bin")) return FORM_BIN;     // NOTE.X tone bank
 
 	return FORM_OED;
+}
+
+//
+// doslib-based file writer
+//   stdio の fopen("wb"/"wt") が既存ファイルの上書きに失敗する環境のため、
+//   書き込み方向は doslib の CREATE/WRITE/CLOSE で行う。
+//   ・エラーは errno でなく戻り値の負値で判定する（doslib の流儀）。
+//   ・wputs は "wt" 相当の改行変換（\n → \r\n）を行う。バイナリは wbytes を使う。
+//
+static int wfd = -1;   // 書き込み用ファイルハンドル（この経路専用）
+
+// CREATE で作成（既存は 0 バイトにして作り直す）。0=成功, 負=エラー
+static int wopen(char *filename)
+{
+	wfd = CREATE(filename, 0x20);   // 0x20: archive 属性
+	return (wfd < 0) ? wfd : 0;
+}
+
+// size バイトそのまま書く（バイナリ）。0=成功, -1=失敗（DISK FULL 等）
+static int wbytes(void *buf, int size)
+{
+	if(wfd < 0) return -1;
+	if(WRITE(wfd, buf, size) != size) return -1;
+	return 0;
+}
+
+// 文字列を書く。\n を \r\n に変換して出力（テキスト "wt" 相当）。0=成功, -1=失敗
+static int wputs(char *s)
+{
+	char  wbuf[1024];
+	int   n = 0;
+
+	while(*s) {
+		if(n >= (int)sizeof(wbuf)-2) {          // バッファ満杯前に掃き出す
+			if(wbytes(wbuf, n)) return -1;
+			n = 0;
+		}
+		if(*s == '\n') wbuf[n++] = '\r';        // \n の前に \r を挿入
+		wbuf[n++] = *s++;
+	}
+	if(n) return wbytes(wbuf, n);
+	return 0;
+}
+
+// 閉じる
+static void wclose(void)
+{
+	if(wfd >= 0) { CLOSE(wfd); wfd = -1; }
 }
 
 //
@@ -672,7 +730,7 @@ static char *my_fgets(char *buf, int size)
 //              else FERRCODE_* (filebuf is not allocated or already freed here;
 //                               caller must NOT MFREE)
 //
-int read_binary_file(char *filename, int filetype)
+static int read_binary_file(char *filename, int filetype)
 {
     int fsize;
 
@@ -682,11 +740,15 @@ int read_binary_file(char *filename, int filetype)
 	// get file size
 	fsize = rsize();
 
-    // check size of SND format
+    // check size of fixed-size formats
 	{
 		if((filetype == FORM_SND) && (fsize != FILESIZE_SND)) {
 			rclose();
 			return FERRCODE_ILLEGAL_SNDFILE;
+		}
+		if((filetype == FORM_BIN) && (fsize != FILESIZE_BIN)) {
+			rclose();
+			return FERRCODE_ILLEGAL_BINFILE;
 		}
 	}
 
@@ -729,124 +791,6 @@ int read_binary_file(char *filename, int filetype)
 }
 
 //
-// SND to tone data
-//
-static int snd2tone(int tan, char *filename)
-{
-	SNDFORM	*pt;
-	int  selectflag;
-	int	 i, j;
-	char *sfilename;
-
-	sfilename = (char*)MakeStrFilename(filename);
-
-	// get data then make file memo
-	{
-		int fn;
-		int date;
-
-		// get date status
-		if(0 > (fn = OPEN(filename, 0x000))) return FERRCODE_CANNOT_OPEN_FILE;
-		date = FILEDATE(fn, 0);
-		CLOSE(fn);
-
-		// make file memo
-		memset(oeddata[tan].filememo, 0, sizeof(oeddata[tan].filememo));
-		sprintf((char*)oeddata[tan].filememo, "%s %s",
-	                                          sfilename,
-											  (char*)MakeStrDateTime(date));
-	}
-
-	// read file
-	{
-		int st;
-
-		st = read_binary_file(filename, FORM_SND);
-		if(st) return st;
-	}
-
-	// init tone data
-	InitToneData(tan);
-
-	// set select flag
-	if(config.auto_select.snd) selectflag = MAINFLAG_SELECT;
-	else                       selectflag = 0;
-
-	pt = (SNDFORM *)filebuf;
-
-
-	{
-		int tonecount;
-		int namesize;
-
-		// set tonecount
-		tonecount = SND_TONENUM;
-		if(tonecount > TONENUM) tonecount = TONENUM;
-
-		// clear tone name
-		namesize = (int)sizeof(Tone[tan][0].name);
-		if(namesize > SND_TONENAME_SIZE) {
-			for(i=0; i<tonecount; i++) {
-				memset(Tone[tan][i].name, 0, namesize);
-			}
-		}
-
-		//
-		// main data
-		//
-		for(i=0; i < tonecount; i++) {
-			// set tone name
-			memset(Tone[tan][i].name, 0, (int)sizeof(Tone[tan][i].name));
-			memcpy(Tone[tan][i].name, pt->name, SND_TONENAME_SIZE);
-			// set tone memo
-			memset(Tone[tan][i].memo, 0, (int)sizeof(Tone[tan][i].memo));
-			sprintf(Tone[tan][i].memo, "%s @%d %s", sfilename, i+1, Tone[tan][i].name);
-
-			Tone[tan][i].con      = pt->reg0[45];
-			Tone[tan][i].feedback = pt->reg0[44];
-			Tone[tan][i].slotmask = pt->reg1[1];
-			Tone[tan][i].pan      = pt->reg1[2];
-			Tone[tan][i].pms      = pt->reg0[48];
-			Tone[tan][i].ams      = pt->reg0[49];
-			Tone[tan][i].sync     = pt->reg1[0];
-			Tone[tan][i].waveform = pt->reg0[46];
-			Tone[tan][i].lfreq    = pt->reg0[47];
-			Tone[tan][i].pmd      = pt->reg0[50];
-			Tone[tan][i].amd      = pt->reg0[51];
-			Tone[tan][i].noise    = DEFAULT_OPM_NOISE;
-			Tone[tan][i].nfreq    = DEFAULT_OPM_NFREQ;
-			Tone[tan][i].dummy    = DEFAULT_OPM_DUMMY;
-
-			for( j = 0; j < 4; j++ ) {
-				Tone[tan][i].reg[j].ar   = pt->reg0[   j];
-				Tone[tan][i].reg[j].d1r  = pt->reg0[ 4+j];
-				Tone[tan][i].reg[j].d2r  = pt->reg0[ 8+j];
-				Tone[tan][i].reg[j].rr   = pt->reg0[12+j];
-				Tone[tan][i].reg[j].d1l  = pt->reg0[16+j];
-				Tone[tan][i].reg[j].tl   = pt->reg0[20+j];
-				Tone[tan][i].reg[j].ks   = pt->reg0[24+j];
-				Tone[tan][i].reg[j].mul  = pt->reg0[28+j];
-				Tone[tan][i].reg[j].dt1  = pt->reg0[32+j];
-				Tone[tan][i].reg[j].dt2  = pt->reg0[36+j];
-				Tone[tan][i].reg[j].amse = pt->reg0[40+j];
-				Tone[tan][i].reg[j].dummy = DEFAULT_OPM_DUMMY;
-			}
-			Tone[tan][i].chmode = DEFAULT_OPM_CHMODE;
-			Tone[tan][i].chflag = config.opm_channel.snd;
-			Tone[tan][i].volume = DEFAULT_OPM_VOLUME;
-
-			// init. select flag
-			flag_select_init_main(tan, i, selectflag);
-
-			pt++;
-		}
-	}
-
-	MFREE(filebuf);
-	return 0;
-}
-
-//
 // confirm reading template data (OED file only)
 //   0: skip template data
 //   1: read template data
@@ -859,421 +803,6 @@ static int conf_read_tempdata(char *filename)
 	sprintf(mbuf, MES_READ_TEMPLATE_DATA, filename);
 	C_MES(C33, mbuf, MESTIME_FOREVER);
 	return key_inputYN(0) ? 0 : 1;
-}
-
-//
-// OED to tone data
-//
-static int oed2tone(int tan, char *filename)
-{
-	int	 i, j;
-	char *pt_s;
-
-	// file read
-	{
-		int st = read_binary_file(filename, FORM_OED);
-		if(st) return st;
-	}
-
-	// validate structure before touching tone data (fail fast)
-	{
-		int vstat = oed_validate(filebuf, filesize);
-		if(vstat) {MFREE(filebuf); return vstat;}
-	}
-
-	// initialize
-	{
-		// init tone data
-		InitToneData(tan);
-
-		// set pt_s
-		pt_s = filebuf;
-
-		// init oeddata
-		memset(&oeddata[tan], 0, sizeof(oeddata[tan]));
-	}
-
-	// read header
-	{
-		// read file memo
-		memcpy(oeddata[tan].filememo, pt_s, OED_FILEMEMO_SIZE);
-		pt_s += OED_FILEMEMO_SIZE;
-
-		// read OED_EX data
-		memcpy(&oeddata[tan].oedex, pt_s, sizeof(OED_EX));
-		pt_s += sizeof(OED_EX);
-
-		// read channel volume ( 8ch x 2 )
-		for(j=0; j<2; j++) {
-			for(i=0; i<8; i++) {
-				oeddata[tan].channelvol[j][i] = *pt_s++;
-				Vol[j][i] = (int)oeddata[tan].channelvol[j][i];
-			}
-		}
-
-		// skip reserve0 area (32byte)
-		pt_s += OED_RESERVE0_SIZE;
-	}
-
-	//
-	// for main data
-	//
-	{
-		int tonecount;
-		int tonesize;
-
-		// read tonecount/tonesize
-		memcpy(&tonecount, pt_s, sizeof(tonecount));
-		oeddata[tan].tonecount = tonecount;
-		pt_s += sizeof(tonecount);
-
-		memcpy(&tonesize, pt_s, sizeof(tonesize));
-		oeddata[tan].tonesize  = tonesize;
-		pt_s += sizeof(tonesize);
-
-		// skip reserve1 area (8byte)
-		pt_s += OED_RESERVE1_SIZE;
-
-		// read tone data
-		for(i=0; i<tonecount; i++) {
-			if(i >= TONENUM) {
-				pt_s += sizeof(OPMDATA);
-				continue;
-			}
-			memcpy(&Tone[tan][i], pt_s, sizeof(OPMDATA));
-			pt_s += sizeof(OPMDATA);
-		}
-
-		// (main slot edit flag is cleared by FileLoad(), for all formats)
-	}
-
-	//
-	// for template data
-	//
-	{
-		int tonecount;
-		int tonesize;
-
-		// read tonecount/tonesize
-		memcpy(&tonecount, pt_s, sizeof(tonecount));
-		oeddata[2].tonecount = tonecount;
-		pt_s += sizeof(tonecount);
-
-		memcpy(&tonesize, pt_s, sizeof(tonesize));
-		oeddata[2].tonesize  = tonesize;
-		pt_s += sizeof(tonesize);
-
-		// skip reserve area (8byte)
-		pt_s += OED_RESERVE1_SIZE;
-
-		// confirm reading template data
-		if(conf_read_tempdata(filename)) {
-			// read template tone data
-			for(i=0; i<tonecount; i++) {
-				if(i >= TONENUM2) break;
-				memcpy(&Tone[2][i], pt_s, sizeof(OPMDATA));
-				pt_s += sizeof(OPMDATA);
-			}
-			// clear edit flag (template slot)
-			//   Cleared here, not in FileLoad(), because it depends on the
-			//   answer above.
-			proc_editflag(CLEAR_EDITFLAG|EDIT_FILE_LOAD2, 2, 0);
-		 }
-	}
-
-	MFREE(filebuf);
-	return 0;
-}
-
-//
-//  TED => Tone   (for template file)
-//
-static int ted2tone(int tan, char *filename)
-{
-	(void)tan;
-	(void)filename;
-
-	// not implemented
-
-	return 0;
-}
-
-//
-// mml to tone data
-//   form (FORM_MML / FORM_MUS) is unused: both are parsed identically.
-//
-static int mml2tone(int tan, char *filename, int form)
-{
-	int	i, n, p;
-	int	j;
-	int	st;
-	int len;
-	int	d[47], dp;
-	int selectflag;
-
-	char  buf[READBUF];
-	char *ad;
-	char *sfilename;
-
-	(void)form;
-
-	sfilename = (char*)MakeStrFilename(filename);
-
-    // init oeddata
-	memset(&oeddata[tan], 0, (int)sizeof(oeddata[tan]));
-
-	// get date status then make file memo
-	{
-		int fn;
-		int date;
-
-		if(0 > (fn = OPEN(filename, 0x000))) return FERRCODE_CANNOT_OPEN_FILE;
-		date = FILEDATE(fn, 0);
-		CLOSE(fn);
-
-		// make file memo
-		memset(&oeddata[tan].filememo, 0, (int)sizeof(oeddata[tan].filememo));
-		sprintf((char*)oeddata[tan].filememo, "%s %s",
-	                                          sfilename,
-								              (char*)MakeStrDateTime(date));
-	}
-
-	// open file (text mode)
-	if(ropen(filename)) return FERRCODE_CANNOT_OPEN_FILE;
-
-	// init tone data
-	InitToneData(tan);
-
-	// select flag
-	if(config.auto_select.mml) selectflag = MAINFLAG_SELECT;
-	else                       selectflag = 0;
-
-	//
-	// main data
-	//
-	i  = 0; // OED tone number
-	n  = 0; // MML @ tone number
-	st = 0; // state
-	while(i<TONENUM && (ad = my_fgets(buf, READBUF)) != NULL) {
-		len = strlen(ad);
-		if(!len) continue;
-
-		p = 0; // index of buf
-
-		switch(st) {
-			case 0:
-				// state 0: get tone number
-				while(buf[p] && buf[p] != '@') p++;
-				if(!buf[p]) break;
-				st = 1;
-				p++;
-				if(0 > (n = getn(buf, &p, len))) {
-					rclose();
-					return FERRCODE_ILLEGAL_MMLFILE;
-				}
-
-				dp = 0; // index of MML tone param
-
-				/* fallthrough - tone data may begin on this same line */
-
-			case 1:
-				// state 1: get tone data
-				while(0 <= (d[dp] = getn(buf, &p, len))) {
-					dp++;
-					if(dp < 47) continue;
-
-					// set tone name
-                    memset(Tone[tan][i].name, 0, (int)sizeof(Tone[tan][i].name));
-					sprintf(Tone[tan][i].name, "@%d", n);
-
-					// set tone memo
-					memset(Tone[tan][i].memo, 0, (int)sizeof(Tone[tan][i].memo));
-					sprintf(Tone[tan][i].memo, "%s %s", sfilename, Tone[tan][i].name);
-
-					dp = 0;
-					for(j=0; j<4; j++) {
-						Tone[tan][i].reg[j].ar   = d[dp++];
-						Tone[tan][i].reg[j].d1r  = d[dp++];
-						Tone[tan][i].reg[j].d2r  = d[dp++];
-						Tone[tan][i].reg[j].rr   = d[dp++];
-						Tone[tan][i].reg[j].d1l  = d[dp++];
-						Tone[tan][i].reg[j].tl   = d[dp++];
-						Tone[tan][i].reg[j].ks   = d[dp++];
-						Tone[tan][i].reg[j].mul  = d[dp++];
-						Tone[tan][i].reg[j].dt1  = d[dp++];
-						Tone[tan][i].reg[j].dt2  = d[dp++];
-						Tone[tan][i].reg[j].amse = d[dp++];
-					}
-					Tone[tan][i].con      = d[dp++];
-					Tone[tan][i].feedback = d[dp++];
-					Tone[tan][i].slotmask = d[dp++];
-					Tone[tan][i].pan      = DEFAULT_OPM_PAN;
-
-					Tone[tan][i].chmode = DEFAULT_OPM_CHMODE;
-					Tone[tan][i].chflag = config.opm_channel.mml;
-					Tone[tan][i].volume = DEFAULT_OPM_VOLUME;
-
-					// init. tone select flag
-					flag_select_init_main(tan, i, selectflag);
-
-					st = 0;
-					i++;
-					break;
-				}
-		}
-
-	}
-
-	oeddata[tan].tonecount = i;
-	oeddata[tan].tonesize = sizeof(OPMDATA);
-
-	rclose();
-	return 0;
-}
-
-
-//
-// OPM to tone data
-//
-static int opm2tone(int tan, char *filename, int form)
-{
-	int	 i, p;
-	int	 j;
-	int	 d[11*5+2], dp;
-	int	 st;
-	int  len;
-	int  c;
-	char buf[READBUF];
-	char *ad;
-	int  fn, date;
-	int  chflag;
-	int  selectflag;
-	char *sfilename;
-
-	sfilename = (char*)MakeStrFilename(filename);
-
-    // init oeddata
-	memset(&oeddata[tan], 0, sizeof(oeddata[tan]));
-
-	// get date status then make file memo
-	{
-		// get date status
-		if(0 > (fn = OPEN(filename, 0x000))) return FERRCODE_CANNOT_OPEN_FILE;
-		date = FILEDATE(fn, 0);
-		CLOSE(fn);
-
-		// make file memo
-		memset(&oeddata[tan].filememo, 0, sizeof(oeddata[tan].filememo));
-		sprintf((char*)oeddata[tan].filememo, "%s %s",
-	                                          sfilename,
-								              (char*)MakeStrDateTime(date));
-	}
-
-	// open file (text mode)
-	if(ropen(filename)) return FERRCODE_CANNOT_OPEN_FILE;
-
-	// init tone data
-	InitToneData(tan);
-
-	// chflag & select flag (OPM/ZMS)
-	{
-		if(form == FORM_OPM) {
-			chflag = config.opm_channel.opm;
-			if(config.auto_select.opm) selectflag = MAINFLAG_SELECT;
-			else                       selectflag = 0;
-		}
-		else {
-			chflag = config.opm_channel.zms;
-			if(config.auto_select.zms) selectflag = MAINFLAG_SELECT;
-			else                       selectflag = 0;
-		}
-	}
-
-	//
-	// main data
-	//
-	i  = 0;	// OED tone number
-	st = 0; // state
-
-	while(i<TONENUM && (ad = my_fgets(buf, READBUF)) != NULL) {
-		len = strlen(ad);
-		if(!len) continue;
-
-		p = 0; // index of buf
-
-		switch(st) {
-			case 0:
-				// state 0: get tone number
-				if(0 > (c = getfc(buf, &p, len))) break;
-				if(c != '(') break;
-
-				if(0 > (c = getfc(buf, &p, len))) break;
-				if(my_tolower(c) != 'v') break;
-
-				st = 1;
-				dp = 0; // index of MML tone param
-
-				/* fallthrough - tone data may begin on this same line */
-
-			case 1:
-				// state 1: get tone data
-				while(0 <= (d[dp] = getn(buf, &p, len))) {
-					dp++;
-					if(dp < 57) continue;
-
-					// set tone name
-                    memset(Tone[tan][i].name, 0, (int)sizeof(Tone[tan][i].name));
-					sprintf(Tone[tan][i].name, "v%d", d[0]);
-
-					// set tone memo
-					memset(Tone[tan][i].memo, 0, (int)sizeof(Tone[tan][i].memo));
-					sprintf(Tone[tan][i].memo, "%s %s", sfilename, Tone[tan][i].name);
-
-					dp = 2;
-					Tone[tan][i].con      = d[dp] & 0x7;
-					Tone[tan][i].feedback = d[dp++] >> 3;
-					Tone[tan][i].slotmask = d[dp++];
-					Tone[tan][i].waveform = d[dp++];
-					Tone[tan][i].sync     = d[dp++];
-					Tone[tan][i].lfreq    = d[dp++];
-					Tone[tan][i].pmd      = d[dp++];
-					Tone[tan][i].amd      = d[dp++];
-					Tone[tan][i].pms      = d[dp++];
-					Tone[tan][i].ams      = d[dp++];
-					Tone[tan][i].pan      = d[dp++];
-					dp++;
-					for(j=0; j<4; j++) {
-						Tone[tan][i].reg[j].ar   = d[dp++];
-						Tone[tan][i].reg[j].d1r  = d[dp++];
-						Tone[tan][i].reg[j].d2r  = d[dp++];
-						Tone[tan][i].reg[j].rr   = d[dp++];
-						Tone[tan][i].reg[j].d1l  = d[dp++];
-						Tone[tan][i].reg[j].tl   = d[dp++];
-						Tone[tan][i].reg[j].ks   = d[dp++];
-						Tone[tan][i].reg[j].mul  = d[dp++];
-						Tone[tan][i].reg[j].dt1  = d[dp++];
-						Tone[tan][i].reg[j].dt2  = d[dp++];
-						Tone[tan][i].reg[j].amse = d[dp++];
-					}
-					Tone[tan][i].chmode = DEFAULT_OPM_CHMODE;
-					Tone[tan][i].chflag = chflag;
-					Tone[tan][i].volume = DEFAULT_OPM_VOLUME;
-
-					// init. selct flag
-					flag_select_init_main(tan, i, selectflag);
-
-					st = 0;
-					i++;
-					break;
-				}
-		}
-	}
-
-    oeddata[tan].tonecount = i;
-	oeddata[tan].tonesize = sizeof(OPMDATA);
-
-	rclose();
-	return 0;
 }
 
 //
@@ -1317,607 +846,9 @@ static int getn(char *buf, int *p, int len)
 }
 
 //
-// mdx to tone data
-//
-static int mdx2tone(int tan, char *filename)
-{
-	char nbuf[1024];
-	char *p, *s, *r;
-	int  tonecount;
-	int  selectflag;
-	int  i, j;
-	char *sfilename;
-
-	sfilename = (char*)MakeStrFilename(filename);
-
-	// get file date then make file memo
-	{
-		int fn;
-		int date;
-		int st;
-
-		if(0 > (fn = OPEN(filename, 0x000))) return FERRCODE_CANNOT_OPEN_FILE;
-		date = FILEDATE(fn, 0);
-		CLOSE(fn);
-
-		st = read_binary_file(filename, FORM_MDX);
-		if(st) return st;
-
-		// make file memo to nbuf
-		memset(nbuf, 0, (int)sizeof(nbuf));
-		sprintf(nbuf, "%s %s ", sfilename,
-                                (char*)MakeStrDateTime(date));
-	}
-
-	// set select flag
-	if(config.auto_select.mdx) selectflag = MAINFLAG_SELECT;
-	else                       selectflag = 0;
-
-	p = filebuf;
-	r = filebuf + filesize;  // r: bottom of mdx data
-
-    // add mdx title to filememo
-	{
-		int bufsize;
-		int len;
-
-		bufsize = (int)sizeof(nbuf);
-		len = strlen((char*)nbuf);
-
-		// get mdx title to nbuf
-		while(len<bufsize && p<r) {
-			if(0x0D == (nbuf[len++] = *p++)) {
-				len--;
-				break;
-			}
-		}
-		if(len<bufsize && nbuf[len]==0x0D) nbuf[len] = '\0';
-	}
-///////////////////////////////////////////////////////////////////////////////////////
-
-	// skip PCM file name
-	while(p<r && *p++);
-
-	// p -> BASE POINT (offset table top)
-	// table: tone(2)+MML.A-H(2*8)+PCM(2) = 10 offsets = 20 bytes
-	if((r-p) < 2*10) {
-		MFREE(filebuf);
-		return FERRCODE_ILLEGAL_MDXFILE;
-	}
-	{
-		char *base = p;
-		int   tone_offset = (U8(base)<<8) + U8(base+1);
-		char *tone_end;
-		int   k;
-
-		// range check all 10 offsets
-		for(k=0; k<10; k++) {
-			int offset = (U8(base+k*2)<<8) + U8(base+k*2+1);
-			if(!(2*10 <= offset && (base+offset) < (r-2))) {
-				MFREE(filebuf);
-				return FERRCODE_ILLEGAL_MDXFILE;
-			}
-		}
-		// tone data end = nearest offset after tone_offset (else r)
-		tone_end = r;
-		for(k=1; k<10; k++) {
-			int offset = (U8(base+k*2)<<8) + U8(base+k*2+1);
-			if(tone_offset < offset && (base+offset) < tone_end)
-				tone_end = base + offset;
-		}
-		s = base + tone_offset;  // top of tone data
-		r = tone_end;            // narrow to tone data area
-	}
-
-	// no tone data?
-	if(s==r) {
-		MFREE(filebuf);
-		C_MES(C33, MES_NO_TONE_DATA_MDXFILE, MESTIME_NORMAL);
-		return 0;
-	}
-
-	// check tone data area
-	if(s>r) {
-		MFREE(filebuf);
-		return FERRCODE_ILLEGAL_MDXFILE;
-	}
-
-	// calc tone count
-	tonecount = (r-s)/27;
-	if((r-s)%27) {
-		MFREE(filebuf);
-		return FERRCODE_ILLEGAL_MDXFILE;
-	}
-
-	// clip tonecount
-	if(tonecount > TONENUM) tonecount = TONENUM;
-
-	// init tone data
-	InitToneData(tan);
-
-    // init oeddata
-	memset(&oeddata[tan], 0, sizeof(oeddata[tan]));
-
-	// copy nbuf to file memo
-	memcpy(oeddata[tan].filememo, nbuf, sizeof(oeddata[tan].filememo));
-
-	for(i=0; i<tonecount; i++) {
-		// set tone name
-		memset(Tone[tan][i].name, 0, (int)sizeof(Tone[tan][i].name));
-		sprintf(Tone[tan][i].name, "@%d", U8(s));
-		// set tone memo
-		memset(Tone[tan][i].memo, 0, (int)sizeof(Tone[tan][i].memo));
-		sprintf(Tone[tan][i].memo, "%s %s", sfilename, Tone[tan][i].name);
-		s++;
-
-		Tone[tan][i].feedback = (U8(s) >> 3) & 0x7;
-		Tone[tan][i].con      = U8(s) & 0x7;
-		Tone[tan][i].pan      = 0x3;
-		s++;
-
-		Tone[tan][i].slotmask = U8(s);
-		s++;
-
-		for(j=0; j<4; j++) {
-			Tone[tan][i].reg[slot[j]].dt1  = U8(s+j) >> 4;
-			Tone[tan][i].reg[slot[j]].mul  = U8(s+j) & 0xF;
-			Tone[tan][i].reg[slot[j]].tl   = U8(s+j+4);
-			Tone[tan][i].reg[slot[j]].ks   = U8(s+j+8) >> 6;
-			Tone[tan][i].reg[slot[j]].ar   = U8(s+j+8) & 0x1F;
-			Tone[tan][i].reg[slot[j]].amse = U8(s+j+12) >> 7;
-			Tone[tan][i].reg[slot[j]].d1r  = U8(s+j+12) & 0x1F;
-			Tone[tan][i].reg[slot[j]].dt2  = U8(s+j+16) >> 6;
-			Tone[tan][i].reg[slot[j]].d2r  = U8(s+j+16) & 0x1F;
-			Tone[tan][i].reg[slot[j]].d1l  = U8(s+j+20) >> 4;
-			Tone[tan][i].reg[slot[j]].rr   = U8(s+j+20) & 0xF;
-		}
-		s += 24;
-
-		Tone[tan][i].chmode = DEFAULT_OPM_CHMODE;
-		Tone[tan][i].chflag = config.opm_channel.mdx;
-		Tone[tan][i].volume = DEFAULT_OPM_VOLUME;
-
-		// init. select flag
-		flag_select_init_main(tan, i, selectflag);
-	}
-
-    oeddata[tan].tonecount = i;
-	oeddata[tan].tonesize = sizeof(OPMDATA);
-
-	MFREE(filebuf);
-	return 0;
-}
-
-//
-// tone data to OED
-// 	  (OED file format v000)
-//
-//
-// doslib-based file writer
-//   stdio の fopen("wb"/"wt") が既存ファイルの上書きに失敗する環境のため、
-//   書き込み方向は doslib の CREATE/WRITE/CLOSE で行う。
-//   ・エラーは errno でなく戻り値の負値で判定する（doslib の流儀）。
-//   ・wputs は "wt" 相当の改行変換（\n → \r\n）を行う。バイナリは wbytes を使う。
-//
-static int wfd = -1;   // 書き込み用ファイルハンドル（この経路専用）
-
-// CREATE で作成（既存は 0 バイトにして作り直す）。0=成功, 負=エラー
-static int wopen(char *filename)
-{
-	wfd = CREATE(filename, 0x20);   // 0x20: archive 属性
-	return (wfd < 0) ? wfd : 0;
-}
-
-// size バイトそのまま書く（バイナリ）。0=成功, -1=失敗（DISK FULL 等）
-static int wbytes(void *buf, int size)
-{
-	if(wfd < 0) return -1;
-	if(WRITE(wfd, buf, size) != size) return -1;
-	return 0;
-}
-
-// 文字列を書く。\n を \r\n に変換して出力（テキスト "wt" 相当）。0=成功, -1=失敗
-static int wputs(char *s)
-{
-	char  wbuf[1024];
-	int   n = 0;
-
-	while(*s) {
-		if(n >= (int)sizeof(wbuf)-2) {          // バッファ満杯前に掃き出す
-			if(wbytes(wbuf, n)) return -1;
-			n = 0;
-		}
-		if(*s == '\n') wbuf[n++] = '\r';        // \n の前に \r を挿入
-		wbuf[n++] = *s++;
-	}
-	if(n) return wbytes(wbuf, n);
-	return 0;
-}
-
-// 閉じる
-static void wclose(void)
-{
-	if(wfd >= 0) { CLOSE(wfd); wfd = -1; }
-}
-
-static int tone2oed(int tan, char *filename)
-{
-	char fbuf[1024];
-	int  tonecount;
-	int  tonesize;
-	int  wcount;
-	int  i, j;
-
-	// open file (doslib CREATE)
-	if(wopen(filename))
-		return FERRCODE_CANNOT_CREATE_FILE;
-
-    // set OED_EX oedexbuf
-	set_oedexbuf();
-
-	// write OED file header
-	wbytes(OED_FILEHEADER_SJIS, OED_FILEHEADER_SIZE);
-
-	// write OED file memo
-	memcpy(fbuf, oeddata[tan].filememo, (int)sizeof(oeddata[tan].filememo));
-	wbytes(fbuf, (int)sizeof(oeddata[tan].filememo));
-
-    // write OED_EX data
-    wbytes(&oedexbuf, (int)sizeof(OED_EX));
-
-	// write channel volume (8ch x 2)
-	{
-		char vbuf[16];
-		int  k = 0;
-		for(i=0; i<2; i++)
-			for(j=0; j<8; j++) vbuf[k++] = (char)Vol[i][j];
-		wbytes(vbuf, 16);
-	}
-
-    // write reserve (32byte)
-	memset(fbuf, 0, OED_RESERVE0_SIZE);
-	wbytes(fbuf, OED_RESERVE0_SIZE);
-
-	// write tone count (TONENUM)
-	tonecount = TONENUM;
-	wbytes(&tonecount, (int)sizeof(tonecount));
-
-	// wite tone data size (= OPMDATA)
-	tonesize = (int)sizeof(OPMDATA);
-	wbytes(&tonesize, (int)sizeof(tonesize));
-
-    // write reserve (8byte)
-	memset(fbuf, 0, OED_RESERVE1_SIZE);
-	wbytes(fbuf, OED_RESERVE1_SIZE);
-
-	// write tone data
-	wcount = (int)sizeof(OPMDATA);
-	for(i=0; i<tonecount; i++) {
-		if(wbytes(&Tone[tan][i], wcount)) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-
-	// write tone count for template (= TONENUM2)
-	tonecount = TONENUM2;
-	wbytes(&tonecount, (int)sizeof(tonecount));
-
-	// write tone data size for template (= sizeof(OPMDATA))
-	tonesize = (int)sizeof(OPMDATA);
-	wbytes(&tonesize, (int)sizeof(tonesize));
-
-    // write reserve1 (8byte)
-	memset(fbuf, 0, OED_RESERVE1_SIZE);
-	wbytes(fbuf, OED_RESERVE1_SIZE);
-
-	// write template date
-	wcount = (int)sizeof(OPMDATA);
-	for(i=0; i<tonecount; i++) {
-		if(wbytes(&Tone[2][i], wcount)) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-
-	wclose();
-	return 0;
-}
-
-//
-// tone data to TED (for template file)
-//    TED file format v000
-//
-static int tone2ted(int tan, char *filename)
-{
-	(void)tan;
-	(void)filename;
-
-	// not implemented
-
-	return 0;
-}
-
-//
-// tone data to MML
-//
-static int tone2mml(int tan, char *filename)
-{
-	char buf[256];
-	int	 i, j;
-
-	if(wopen(filename))
-		return FERRCODE_CANNOT_CREATE_FILE;
-
-	sprintf(buf, MML_FILECOMMENT, OE_MYNAME, OE_VERSION, OE_SUBVERSION);
-	strcat(buf, "\n");
-	wputs(buf);
-
-	// output tone data
-	for(i=0; i<TONENUM; i++) {
-		// check select flag
-		if(!stat_selectflag(STAT_TONE, tan, i)) continue;
-
-		sprintf(buf, "\n/* %s */\n", Tone[tan][i].name);
-		wputs(buf);
-
-		sprintf(buf, "@%d = {\n", i+config.offset_export_tone_number+1);
-		wputs(buf);
-
-		wputs("/*  AR D1R D2R  RR D1L  TL  KS MUL DT1 DT2 AME  */\n");
-
-		for(j=0; j<4; j++) {
-			sprintf(buf, "   %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,\n",
-					Tone[tan][i].reg[j].ar,
-					Tone[tan][i].reg[j].d1r,
-					Tone[tan][i].reg[j].d2r,
-					Tone[tan][i].reg[j].rr,
-					Tone[tan][i].reg[j].d1l,
-					Tone[tan][i].reg[j].tl,
-					Tone[tan][i].reg[j].ks,
-					Tone[tan][i].reg[j].mul,
-					Tone[tan][i].reg[j].dt1,
-					Tone[tan][i].reg[j].dt2,
-					Tone[tan][i].reg[j].amse);
-			wputs(buf);
-		}
-
-		wputs("/* CON  FL  SM */\n");
-
-		sprintf(buf, "   %3d,%3d,%3d\n",
-					Tone[tan][i].con,
-					Tone[tan][i].feedback,
-					Tone[tan][i].slotmask  );
-		wputs(buf);
-		if(wputs("}\n")) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-
-	// output template tone data
-	for(i=0; i<TONENUM2; i++) {
-		// check select flag
-		if(!stat_selectflag(STAT_TONE, 2, i)) continue;
-
-		sprintf(buf, "\n/* %s */\n", Tone[2][i].name);
-		wputs(buf);
-
-		sprintf(buf, "@%d = {\n", i+config.offset_export_template_number+1);
-		wputs(buf);
-
-		wputs("/*  AR D1R D2R  RR D1L  TL  KS MUL DT1 DT2 AME  */\n");
-
-		for(j=0; j<4; j++) {
-			sprintf(buf, "   %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,\n",
-					Tone[2][i].reg[j].ar,
-					Tone[2][i].reg[j].d1r,
-					Tone[2][i].reg[j].d2r,
-					Tone[2][i].reg[j].rr,
-					Tone[2][i].reg[j].d1l,
-					Tone[2][i].reg[j].tl,
-					Tone[2][i].reg[j].ks,
-					Tone[2][i].reg[j].mul,
-					Tone[2][i].reg[j].dt1,
-					Tone[2][i].reg[j].dt2,
-					Tone[2][i].reg[j].amse );
-			wputs(buf);
-		}
-
-		wputs("/* CON  FL  SM */\n");
-
-		sprintf(buf, "   %3d,%3d,%3d\n",
-					Tone[2][i].con,
-					Tone[2][i].feedback,
-					Tone[2][i].slotmask  );
-		wputs(buf);
-		if(wputs("}\n")) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-	wclose();
-	return 0;
-}
-
-//
-// tone data to OPM
-//
-static int tone2opm(int tan, char *filename)
-{
-	int	 i, j;
-	char buf[256];
-
-	if(wopen(filename))
-		return FERRCODE_CANNOT_CREATE_FILE;
-
-	sprintf(buf, MML_FILECOMMENT, OE_MYNAME, OE_VERSION, OE_SUBVERSION);
-	strcat (buf, "\n");
-	wputs(buf);
-
-	// output tone data
-	for(i=0; i<TONENUM; i++) {
-		// check select flag
-		if(!stat_selectflag(STAT_TONE, tan, i)) continue;
-
-		sprintf(buf, "\n/* %s\n", Tone[tan][i].name);
-		wputs(buf);
-
-		sprintf(buf, "(v%d,0\n", i+config.offset_export_tone_number+1);
-		wputs(buf);
-
-		wputs("/*    F/A  SM  WF  SY  SP PMD AMD PMS AMS  LR\n");
-		sprintf(buf, "      %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,  0\n",
-				(Tone[tan][i].feedback << 3) + Tone[tan][i].con,
-				Tone[tan][i].slotmask,
-				Tone[tan][i].waveform,
-				Tone[tan][i].sync,
-				Tone[tan][i].lfreq,
-				Tone[tan][i].pmd,
-				Tone[tan][i].amd,
-				Tone[tan][i].pms,
-				Tone[tan][i].ams,
-				Tone[tan][i].pan);
-		wputs(buf);
-
-		wputs("/*     AR D1R D2R  RR D1L  TL  KS MUL DT1 DT2 AME\n");
-		for(j=0; j<4; j++) {
-			sprintf(buf, "      %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",
-				Tone[tan][i].reg[j].ar,
-				Tone[tan][i].reg[j].d1r,
-				Tone[tan][i].reg[j].d2r,
-				Tone[tan][i].reg[j].rr,
-				Tone[tan][i].reg[j].d1l,
-				Tone[tan][i].reg[j].tl,
-				Tone[tan][i].reg[j].ks,
-				Tone[tan][i].reg[j].mul,
-				Tone[tan][i].reg[j].dt1,
-				Tone[tan][i].reg[j].dt2,
-				Tone[tan][i].reg[j].amse);
-			wputs(buf);
-		}
-		if(wputs(")\n")) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-
-	// output local tone data
-	for(i=0; i<TONENUM2; i++) {
-		// check select flag
-		if(!stat_selectflag(STAT_TONE, 2, i)) continue;
-
-		sprintf(buf, "\n/* %s\n", Tone[2][i].name);
-		wputs(buf);
-
-		sprintf(buf, "(v%d,0\n", i+config.offset_export_template_number+1);
-		wputs(buf);
-
-		wputs("/*    F/A  SM  WF  SY  SP PMD AMD PMS AMS  LR\n");
-		sprintf(buf, "      %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,  0\n",
-				(Tone[2][i].feedback << 3) + Tone[2][i].con,
-				Tone[2][i].slotmask,
-				Tone[2][i].waveform,
-				Tone[2][i].sync,
-				Tone[2][i].lfreq,
-				Tone[2][i].pmd,
-				Tone[2][i].amd,
-				Tone[2][i].pms,
-				Tone[2][i].ams,
-				Tone[2][i].pan);
-		wputs(buf);
-
-		wputs("/*     AR D1R D2R  RR D1L  TL  KS MUL DT1 DT2 AME\n");
-		for(j=0; j<4; j++) {
-			sprintf(buf, "      %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",
-				Tone[2][i].reg[j].ar,
-				Tone[2][i].reg[j].d1r,
-				Tone[2][i].reg[j].d2r,
-				Tone[2][i].reg[j].rr,
-				Tone[2][i].reg[j].d1l,
-				Tone[2][i].reg[j].tl,
-				Tone[2][i].reg[j].ks,
-				Tone[2][i].reg[j].mul,
-				Tone[2][i].reg[j].dt1,
-				Tone[2][i].reg[j].dt2,
-				Tone[2][i].reg[j].amse);
-			wputs(buf);
-		}
-		if(wputs(")\n")) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-	wclose();
-	return 0;
-}
-
-//
-// tone data to SND
-//
-static int tone2snd(int tan, char *filename)
-{
-	SNDFORM p;
-	int tonecount;
-	int wcount;
-	int i, j;
-
-	if(wopen(filename))
-		return FERRCODE_CANNOT_CREATE_FILE;
-
-    // upper limit
-    tonecount = SND_TONENUM;
-	if(tonecount > TONENUM) tonecount = TONENUM;
-
-	wcount = (int)sizeof(SNDFORM);
-	for(i=0; i < tonecount; i++) {
-        // clear SNDFORM p
-        memset(&p, 0, sizeof(SNDFORM));
-
-		// set tone name
-		strncpy(p.name, Tone[tan][i].name, SND_TONENAME_SIZE);
-
-		// set OPM param.
-		p.reg0[45] = Tone[tan][i].con;
-		p.reg0[44] = Tone[tan][i].feedback;
-		p.reg1[1]  = Tone[tan][i].slotmask;
-		p.reg1[2]  = Tone[tan][i].pan;
-		p.reg0[48] = Tone[tan][i].pms;
-		p.reg0[49] = Tone[tan][i].ams;
-		p.reg1[0]  = Tone[tan][i].sync;
-		p.reg0[46] = Tone[tan][i].waveform;
-		p.reg0[47] = Tone[tan][i].lfreq;
-		p.reg0[50] = Tone[tan][i].pmd;
-		p.reg0[51] = Tone[tan][i].amd;
-
-		for(j=0; j<4; j++) {
-			p.reg0[   j] = Tone[tan][i].reg[j].ar;
-			p.reg0[ 4+j] = Tone[tan][i].reg[j].d1r;
-			p.reg0[ 8+j] = Tone[tan][i].reg[j].d2r;
-			p.reg0[12+j] = Tone[tan][i].reg[j].rr;
-			p.reg0[16+j] = Tone[tan][i].reg[j].d1l;
-			p.reg0[20+j] = Tone[tan][i].reg[j].tl;
-			p.reg0[24+j] = Tone[tan][i].reg[j].ks;
-			p.reg0[28+j] = Tone[tan][i].reg[j].mul;
-			p.reg0[32+j] = Tone[tan][i].reg[j].dt1;
-			p.reg0[36+j] = Tone[tan][i].reg[j].dt2;
-			p.reg0[40+j] = Tone[tan][i].reg[j].amse;
-		}
-
-		if(wbytes(&p, wcount)) {
-			wclose();
-			return FERRCODE_DISK_FULL;
-		}
-	}
-
-	wclose();
-	return 0;
-}
-
-//
 // make string for file name
 //
-char *MakeStrFilename(char *fname)
+static char *MakeStrFilename(char *fname)
 {
 	static char fbuf[64];
 	struct NAMECKBUF f;
@@ -1932,7 +863,7 @@ char *MakeStrFilename(char *fname)
 //
 // make string for date-time
 //
-char *MakeStrDateTime(int date)
+static char *MakeStrDateTime(int date)
 {
 	static char fbuf[64];
 
@@ -2065,3 +996,47 @@ static void restore_tonedata(int tan)
 
     memcpy(Vol, Vol2, sizeof(Vol));
 }
+
+//
+// unpack one MDX-format 27-byte tone record
+//   s: top of the record (s[0] = tone number)
+//   MDX tone data and NOTE.X's tone.bin share this layout.
+//   Operator order is M1,M2,C1,C2 - slot[] maps it to the editor's order.
+//
+static void unpack_mdx_tone(OPMDATA *t, char *s)
+{
+	int j;
+
+	t->feedback = (U8(s+1) >> 3) & 0x7;
+	t->con      = U8(s+1) & 0x7;
+	t->pan      = 0x3;
+	t->slotmask = U8(s+2);
+
+	s += 3;
+	for(j=0; j<4; j++) {
+		t->reg[slot[j]].dt1  = U8(s+j) >> 4;
+		t->reg[slot[j]].mul  = U8(s+j) & 0xF;
+		t->reg[slot[j]].tl   = U8(s+j+4);
+		t->reg[slot[j]].ks   = U8(s+j+8) >> 6;
+		t->reg[slot[j]].ar   = U8(s+j+8) & 0x1F;
+		t->reg[slot[j]].amse = U8(s+j+12) >> 7;
+		t->reg[slot[j]].d1r  = U8(s+j+12) & 0x1F;
+		t->reg[slot[j]].dt2  = U8(s+j+16) >> 6;
+		t->reg[slot[j]].d2r  = U8(s+j+16) & 0x1F;
+		t->reg[slot[j]].d1l  = U8(s+j+20) >> 4;
+		t->reg[slot[j]].rr   = U8(s+j+20) & 0xF;
+	}
+}
+
+//
+// Per-format conversion code. Each fragment is compiled as part of
+// this file, not on its own.
+//
+#include "file_oed.inc"
+#include "file_ted.inc"
+#include "file_snd.inc"
+#include "file_mml.inc"
+#include "file_opm.inc"
+#include "file_mdx.inc"
+#include "file_bin.inc"
+

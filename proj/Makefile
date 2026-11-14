@@ -81,6 +81,15 @@ SRCS_C := \
         flag.c cursor.c const.c \
         opmset.c scalekey.c trap7.c
 
+SRCS_INC := \
+        file_oed.inc \
+        file_ted.inc \
+        file_snd.inc \
+        file_mml.inc \
+        file_opm.inc \
+        file_mdx.inc \
+		file_bin.inc
+
 SRCS_DEF := \
         disp.def \
         map_message.def \
@@ -102,6 +111,7 @@ USRINC_SJIS   := $(patsubst $(USRINC)/%,$(USRINC_S)/%,$(USRINC_FILES))
 # src/
 SRCS_C_SJIS   := $(SRCS_C:%.c=$(SRCDIR_S)/%.c)
 SRCS_DEF_SJIS := $(SRCS_DEF:%.def=$(SRCDIR_S)/%.def)
+SRCS_INC_SJIS := $(SRCS_INC:%.inc=$(SRCDIR_S)/%.inc)
 SRCS_S_SJIS   := $(SRCS_S:%.s=$(SRCDIR_S)/%.s)
 
 # UTF-8 -> SJIS conversion rules
@@ -109,6 +119,9 @@ $(SRCDIR_S)/%.c: $(SRCDIR)/%.c | $(SRCDIR_S)
 	iconv -f UTF-8 -t CP932 $< > $@
 
 $(SRCDIR_S)/%.def: $(SRCDIR)/%.def | $(SRCDIR_S)
+	iconv -f UTF-8 -t CP932 $< > $@
+
+$(SRCDIR_S)/%.inc: $(SRCDIR)/%.inc | $(SRCDIR_S)
 	iconv -f UTF-8 -t CP932 $< > $@
 
 $(SRCDIR_S)/%.s: $(SRCDIR)/%.s | $(SRCDIR_S)
@@ -127,7 +140,7 @@ ELF_ASM_OBJS  := $(SRCS_S:%.s=$(OBJDIR)/%_elf.o)
 
 # convert target (explicit)
 .PHONY: convert
-convert: $(SRCS_C_SJIS) $(SRCS_S_SJIS) $(USRINC_SJIS) $(SRCS_DEF_SJIS)
+convert: $(SRCS_C_SJIS) $(SRCS_S_SJIS) $(USRINC_SJIS) $(SRCS_DEF_SJIS) $(SRCS_INC_SJIS)
 
 .PHONY: all
 all:
