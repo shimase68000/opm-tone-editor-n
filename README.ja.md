@@ -65,11 +65,20 @@ OPM Tone Editor 'Ｎ' は編集機能に特化し、\
 
 入力：
 
-- OED, MML, OPM, SND, MDX, ZMS
+- **OED** — OPM Tone Editor 独自形式
+- **MML** — MXDRV のソース
+- **OPM** — OPMDRV* の形式
+- **SND** — SOUND PRO-68K の形式
+- **MDX** — MXDRV の形式
+- **ZMS** — ZMUSIC のソース
+- **BIN** — NOTE.X の音色バンク形式
 
 出力：
 
-- OED, MML, OPM, SND
+- **OED** — OPM Tone Editor 独自形式
+- **MML** — MXDRV のソース
+- **OPM** — OPMDRV* の形式
+- **SND** — SOUND PRO-68K の形式
 
 ---
 
@@ -85,7 +94,7 @@ scalekey は別途リリースしています。
 
 - [scalekey](https://github.com/shimase68000/scalekey) / [scalekey Releases](https://github.com/shimase68000/scalekey/releases)
 
-Tone Editor v1.21 は scalekey v1.10 以降と組み合わせて動作します。\
+Tone Editor v1.22 は scalekey v1.10 以降と組み合わせて動作します。\
 `scalekey.midi_enable` の設定を使う場合は scalekey v1.11 以降が必要です。
 
 ---
