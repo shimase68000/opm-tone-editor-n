@@ -63,11 +63,20 @@ This separation allows:
 
 Input:
 
-- OED, MML, OPM, SND, MDX, ZMS
+- **OED** — OPM Tone Editor's native format
+- **MML** — MXDRV source
+- **OPM** — OPMDRV*'s format
+- **SND** — SOUND PRO-68K's format
+- **MDX** — MXDRV's format
+- **ZMS** — ZMUSIC source
+- **BIN** — NOTE.X's tone bank format
 
 Output:
 
-- OED, MML, OPM, SND
+- **OED** — OPM Tone Editor's native format
+- **MML** — MXDRV source
+- **OPM** — OPMDRV*'s format
+- **SND** — SOUND PRO-68K's format
 
 ---
 
@@ -83,7 +92,7 @@ on your `PATH`. scalekey is released separately.
 
 - [scalekey](https://github.com/shimase68000/scalekey) / [scalekey Releases](https://github.com/shimase68000/scalekey/releases)
 
-Tone Editor v1.21 works with scalekey v1.10 or later.\
+Tone Editor v1.22 works with scalekey v1.10 or later.\
 The `scalekey.midi_enable` setting requires scalekey v1.11 or later.
 
 ---
