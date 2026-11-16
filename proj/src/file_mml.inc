@@ -18,6 +18,7 @@ static int mml2tone(int tan, char *filename, int form)
 	int len;
 	int	d[47], dp;
 	int selectflag;
+	int c;
 
 	char  buf[READBUF];
 	char *ad;
@@ -70,16 +71,30 @@ static int mml2tone(int tan, char *filename, int form)
 
 		switch(st) {
 			case 0:
-				// state 0: get tone number
-				while(buf[p] && buf[p] != '@') p++;
-				if(!buf[p]) break;
-				st = 1;
-				p++;
-				if(0 > (n = getn(buf, &p, len))) {
-					rclose();
-					return FERRCODE_ILLEGAL_MMLFILE;
+				// state 0: find a tone definition "@n = {"
+				//   - Stop at a comment. tone2mml() writes the tone name as
+				//     "/* name */", and a name such as "@12" must not be taken
+				//     for a definition.
+				//   - "@" followed by a non-digit is a command (@v, @q, ...).
+				//   - "@n" not followed by "=" is a tone change in track data.
+				for(;;) {
+					while(buf[p] && buf[p] != '@' && !is_mml_comment(buf[p])) p++;
+					if(buf[p] != '@') break;         // end of line or comment
+					p++;
+					// "@@n" (tone macro), "@wn" (waveform), "@kn" (tone map)
+					// are other definitions, not tone definitions.
+					if(buf[p] == '@') { p++; continue; }
+					c = my_tolower(buf[p]);
+					if(c == 'w' || c == 'k') continue;
+					while(buf[p] == ' ' || buf[p] == '\t') p++;   // "@ 16={"
+					if(!isdigit(buf[p])) continue;                // command such as @v / @q
+					n = getn(buf, &p, len);
+					while(buf[p] == ' ' || buf[p] == '\t') p++;
+					if(buf[p] == '=') break;                      // found "@n ="
 				}
+				if(buf[p] != '=') break;
 
+				st = 1;
 				dp = 0; // index of MML tone param
 
 				/* fallthrough - tone data may begin on this same line */
