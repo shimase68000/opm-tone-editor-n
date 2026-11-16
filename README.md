@@ -92,7 +92,7 @@ on your `PATH`. scalekey is released separately.
 
 - [scalekey](https://github.com/shimase68000/scalekey) / [scalekey Releases](https://github.com/shimase68000/scalekey/releases)
 
-Tone Editor v1.22 works with scalekey v1.10 or later.\
+Tone Editor v1.23 works with scalekey v1.10 or later.\
 The `scalekey.midi_enable` setting requires scalekey v1.11 or later.
 
 ---
